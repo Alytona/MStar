@@ -307,10 +307,10 @@ namespace MStarGUI
                     long size = writeFileToBinary( outputStream, imgFilename );
                     chunks.Add( new StoreSecureInfoCommand( storeSecureInfoCommand, currentOffset, size ) );
                 }
-                else if (command is StoreNutxxConfigCommand storeNutxxConfigCommand)
+                else if (command is StoreNuttxConfigCommand storeNuttxConfigCommand)
                 {
                     long size = writeFileToBinary( outputStream, imgFilename );
-                    chunks.Add( new StoreNutxxConfigCommand( storeNutxxConfigCommand, currentOffset, size ) );
+                    chunks.Add( new StoreNuttxConfigCommand( storeNuttxConfigCommand, currentOffset, size ) );
                 }
                 else if (command is SparseWriteCommand writeSparseCommand)
                 {

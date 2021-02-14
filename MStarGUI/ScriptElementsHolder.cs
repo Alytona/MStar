@@ -118,14 +118,6 @@ namespace MStarGUI
                         case "unlzo.cont":
                             addUnlzoCommand( line );
                             break;
-
-                        case "store_secure_info":
-                            addStoreSecureInfoCommand( line );
-                            break;
-
-                        case "store_nutxx_config":
-                            addStoreNutxxConfigCommand( line );
-                            break;
                     }
                 }
                 else if (line.StartsWith( "filepartload" ))
@@ -135,6 +127,14 @@ namespace MStarGUI
                 else if (line.StartsWith( "sparse_write" ))
                 {
                     addSparseWriteCommand( line );
+                }
+                else if (line.StartsWith( "store_secure_info" )) 
+                {
+                    addStoreSecureInfoCommand( line );
+                }
+                else if (line.StartsWith( "store_nuttx_config" ))
+                {
+                    addStoreNuttxConfigCommand( line );
                 }
                 else if (line.StartsWith( "%" ))
                 {
@@ -200,9 +200,9 @@ namespace MStarGUI
         {
             addWriteFileCommand( new StoreSecureInfoCommand( LastFilePartLoadCommand, line.Split( ' ' ) ) );
         }
-        public void addStoreNutxxConfigCommand (string line)
+        public void addStoreNuttxConfigCommand (string line)
         {
-            addWriteFileCommand( new StoreNutxxConfigCommand( LastFilePartLoadCommand, line.Split( ' ' ) ) );
+            addWriteFileCommand( new StoreNuttxConfigCommand( LastFilePartLoadCommand, line.Split( ' ' ) ) );
         }
         void addWriteFileCommand (WriteFileCommand command)
         {

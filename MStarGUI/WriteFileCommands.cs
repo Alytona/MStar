@@ -220,9 +220,9 @@ namespace MStarGUI
         {
             LoadCommand.writeTo( writer );
             if (FirstChunk) 
-                writer.Write( $"mmc unlzo" );
+                writer.Write( $"mmc unlzo " );
             else
-                writer.Write( $"mmc unlzo.cont" );
+                writer.Write( $"mmc unlzo.cont " );
             writer.Write( $"{Address} 0x{Size:x} {PartitionName}" );
             if (!string.IsNullOrEmpty( Unknown ))
                 writer.Write( $" {Unknown}" );
@@ -238,6 +238,9 @@ namespace MStarGUI
 
             PartitionName = commandTokens[1];
             Address = commandTokens[2];
+
+            Offset = loadCommand.Offset;
+            Size = loadCommand.Size;
         }
         public StoreSecureInfoCommand (StoreSecureInfoCommand otherCommand, long offset, long size) : base( otherCommand, offset, size )
         {
@@ -251,26 +254,29 @@ namespace MStarGUI
             writer.WriteLine( $"store_secure_info {PartitionName} {Address}" );
         }
     }
-    public class StoreNutxxConfigCommand : WriteFileCommand
+    public class StoreNuttxConfigCommand : WriteFileCommand
     {
-        public StoreNutxxConfigCommand (FilePartLoadCommand loadCommand, string[] commandTokens) : base( loadCommand )
+        public StoreNuttxConfigCommand (FilePartLoadCommand loadCommand, string[] commandTokens) : base( loadCommand )
         {
             if (commandTokens.Length != 3)
-                throw new Exception( "Неверное количество параметров store_nutxx_config (" + (commandTokens.Length - 1) + ", должно быть 2)." );
+                throw new Exception( "Неверное количество параметров store_nuttx_config (" + (commandTokens.Length - 1) + ", должно быть 2)." );
 
             PartitionName = commandTokens[1];
             Address = commandTokens[2];
+
+            Offset = loadCommand.Offset;
+            Size = loadCommand.Size;
         }
-        public StoreNutxxConfigCommand (StoreNutxxConfigCommand otherCommand, long offset, long size) : base( otherCommand, offset, size )
+        public StoreNuttxConfigCommand (StoreNuttxConfigCommand otherCommand, long offset, long size) : base( otherCommand, offset, size )
         {
         }
 
-        public override string getTypeName () => "nutxx config";
+        public override string getTypeName () => "nuttx config";
 
         public override void writeToHeader (StreamWriter writer)
         {
             LoadCommand.writeTo( writer );
-            writer.WriteLine( $"store_nutxx_config {PartitionName} {Address}" );
+            writer.WriteLine( $"store_nuttx_config {PartitionName} {Address}" );
         }
     }
 }
