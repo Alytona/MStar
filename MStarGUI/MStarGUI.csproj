@@ -100,5 +100,11 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\lzo_clr\lzo_clr.vcxproj">
+      <Project>{dbb317be-25a2-4475-96db-3feee316350e}</Project>
+      <Name>lzo_clr</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
