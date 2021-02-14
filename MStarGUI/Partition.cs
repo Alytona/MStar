@@ -201,6 +201,8 @@ namespace MStarGUI
                 {
                     messageLogger.logMessage( "Распаковка образа " + filename + "." );
                     Sparse.Decompress( chunkNames, filename );
+                    foreach(string chunkFileName in chunkNames) 
+                        File.Delete( chunkFileName );
                 }
                 else if (PackingType == PackingType.Lzo)
                 {
@@ -272,19 +274,6 @@ namespace MStarGUI
 
             return size;
         }
-        //void copyChunk (FileStream inputStream, FileStream outputStream, long size)
-        //{
-        //    byte[] buffer = new byte[1000];
-        //    long remains = size;
-        //    while (remains > 0)
-        //    {
-        //        int read = inputStream.Read( buffer, 0, (int)(remains >= 1000 ? 1000 : remains) );
-        //        outputStream.Write( buffer, 0, read );
-        //        remains -= read;
-        //    }
-        //    outputStream.Flush();
-        //    alignStream( outputStream );
-        //}
         void alignStream (FileStream outputStream)
         {
             long offset = outputStream.Position & 0x0FFF;
@@ -344,8 +333,8 @@ namespace MStarGUI
                         messageLogger.logMessage( "Добавление части " + index + "." );
                         currentOffset = outputStream.Position;
                         long size = writeFileToBinary( outputStream, chunkFileName );
+                        File.Delete( chunkFileName );
                         chunks.Add( new SparseWriteCommand( writeSparseCommand, currentOffset, size ) );
-
                         chunkFileName = simgFilename + ".chunk." + index++;
                     }
                 }
@@ -376,7 +365,7 @@ namespace MStarGUI
                             if (File.Exists( chunkName ))
                                 File.Delete( chunkName );
                             Lzo.Lzo.Compress( plainChunkName, chunkName );
-//                            File.Delete( plainChunkName );
+                            File.Delete( plainChunkName );
                         }
                         for (int chunkIndex = 1; chunkIndex <= chunksCounter; chunkIndex++)
                         {
@@ -391,40 +380,5 @@ namespace MStarGUI
             }
             return chunks;
         }
-        //public List<WriteFileCommand> copy (FileStream inputStream, FileStream outputStream, IMessageLogger messageLogger)
-        //{
-        //    List<WriteFileCommand> chunks = new List<WriteFileCommand>();
-
-        //    int count = 0;
-        //    bool fragmented = Chunks.Count > 1;
-        //    foreach (WriteFileCommand command in Chunks)
-        //    {
-        //        if (fragmented)
-        //        {
-        //            messageLogger.logMessage( $"Копирование фрагмента #{++count} образа {Name}." );
-        //        }
-        //        else
-        //        {
-        //            messageLogger.logMessage( $"Копирование образа {Name}." );
-        //        }
-
-        //        long currentOffset = outputStream.Position;
-        //        inputStream.Seek( command.Offset, SeekOrigin.Begin );
-
-        //        copyChunk( inputStream, outputStream, command.Size );
-        //        command.Offset = currentOffset;
-
-        //        WriteFileCommand newCommand = null;
-        //        if (command is WritePiCommand piCommand)
-        //            newCommand = new WritePiCommand( piCommand, currentOffset, command.Size );
-        //        else if (command is WriteBootCommand bootCommand)
-        //            newCommand = new WriteBootCommand( bootCommand, currentOffset, command.Size );
-        //        else if (command is SparseWriteCommand sparseCommand)
-        //            newCommand = new SparseWriteCommand( sparseCommand, currentOffset, command.Size );
-        //        if (newCommand != null)
-        //            chunks.Add( newCommand );
-        //    }
-        //    return chunks;
-        //}
     }
 }
