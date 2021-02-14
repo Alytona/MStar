@@ -123,6 +123,7 @@ namespace MStarGUI
             try
             {
                 UnpackingProtocolTextBox.Clear();
+                Application.DoEvents();
 
                 List<Partition> partitionsToUnpack = new List<Partition>();
                 foreach (Control control in PartitionsTablePanel.Controls)
@@ -217,6 +218,7 @@ namespace MStarGUI
         private void PackPutton_Click (object sender, EventArgs e)
         {
             PackingProtocolTextBox.Clear();
+            Application.DoEvents();
             if (packFirmware( PackLogger ))
             {
                 PackLogger.logMessage( "Успешно упаковано." );
