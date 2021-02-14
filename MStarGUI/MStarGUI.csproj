@@ -55,21 +55,9 @@
     <Compile Include="MainWindow_v2.Designer.cs">
       <DependentUpon>MainWindow_v2.cs</DependentUpon>
     </Compile>
-    <Compile Include="PackDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="PackDialog.Designer.cs">
-      <DependentUpon>PackDialog.cs</DependentUpon>
-    </Compile>
     <Compile Include="Partition.cs" />
     <Compile Include="PartitionPanel.cs">
       <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="UnpackDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UnpackDialog.Designer.cs">
-      <DependentUpon>UnpackDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -81,12 +69,10 @@
     </Compile>
     <Compile Include="ScriptElementsHolder.cs" />
     <Compile Include="Sparse.cs" />
+    <Compile Include="TextBoxLogger.cs" />
     <Compile Include="WriteFileCommands.cs" />
     <EmbeddedResource Include="MainWindow_v2.resx">
       <DependentUpon>MainWindow_v2.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="PackDialog.resx">
-      <DependentUpon>PackDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -100,9 +86,6 @@
     </Compile>
     <EmbeddedResource Include="ProtocolForm.resx">
       <DependentUpon>ProtocolForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UnpackDialog.resx">
-      <DependentUpon>UnpackDialog.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
