@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/MStarGUI/v16
+/MStarGUI/obj
+/work
+/_debug
+/_release
+/folder_80.png
+/folder.png
