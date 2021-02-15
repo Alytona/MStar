@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using Lzo;
 
 namespace MStarGUI
 {
@@ -153,6 +152,14 @@ namespace MStarGUI
                 return string.Empty;
             return FileChunksTotalSize.ToString();
         }
+        public string getTypeString ()
+        {
+            return Chunks.Count > 0 ? Chunks[0].getTypeName() : "";
+        }
+        public string getChunksString ()
+        {
+            return Chunks.Count.ToString();
+        }
 
         public bool unpack (string workDirectory, FileStream firmwareStream, IMessageLogger messageLogger)
         {
@@ -200,8 +207,9 @@ namespace MStarGUI
                 if (PackingType == PackingType.Sparse)
                 {
                     messageLogger.logMessage( "Распаковка образа " + filename + "." );
-                    Sparse.Decompress( chunkNames, filename );
-                    foreach(string chunkFileName in chunkNames) 
+                    Compress.Sparse.Decompress( chunkNames.ToArray(), filename );
+                    File.Delete( filename + ".sparse" );
+                    foreach (string chunkFileName in chunkNames) 
                         File.Delete( chunkFileName );
                 }
                 else if (PackingType == PackingType.Lzo)
@@ -230,7 +238,7 @@ namespace MStarGUI
             string decompressedFilename = chunkName + ".plain";
             if (File.Exists( decompressedFilename ))
                 File.Delete( decompressedFilename );
-            Lzo.Lzo.Decompress( chunkName, decompressedFilename );
+            Compress.Lzo.Decompress( chunkName, decompressedFilename );
         }
 
         void readFileFromBinary (FileStream inputStream, long offset, long size, string filename)
@@ -323,11 +331,11 @@ namespace MStarGUI
                 else if (command is SparseWriteCommand writeSparseCommand)
                 {
                     messageLogger.logMessage( "Упаковка sparse." );
-                    string simgFilename = Path.Combine( workDirectory, Name + ".simg" );
-                    Sparse.Compress( imgFilename, simgFilename, 157286400 );
+//                    string simgFilename = Path.Combine( workDirectory, Name + ".simg" );
+                    Compress.Sparse.Compress( imgFilename, 4096, 157286400 );
 
                     int index = 0;
-                    string chunkFileName = simgFilename + ".chunk." + index++;
+                    string chunkFileName = imgFilename + ".chunk." + index++;
                     while (File.Exists( chunkFileName ))
                     {
                         messageLogger.logMessage( "Добавление части " + index + "." );
@@ -335,7 +343,7 @@ namespace MStarGUI
                         long size = writeFileToBinary( outputStream, chunkFileName );
                         File.Delete( chunkFileName );
                         chunks.Add( new SparseWriteCommand( writeSparseCommand, currentOffset, size ) );
-                        chunkFileName = simgFilename + ".chunk." + index++;
+                        chunkFileName = imgFilename + ".chunk." + index++;
                     }
                 }
                 else if (command is UnlzoCommand unlzoCommand)
@@ -364,7 +372,7 @@ namespace MStarGUI
                             string chunkName = imgFilename + ".chunk." + chunkIndex;
                             if (File.Exists( chunkName ))
                                 File.Delete( chunkName );
-                            Lzo.Lzo.Compress( plainChunkName, chunkName );
+                            Compress.Lzo.Compress( plainChunkName, chunkName );
                             File.Delete( plainChunkName );
                         }
                         for (int chunkIndex = 1; chunkIndex <= chunksCounter; chunkIndex++)

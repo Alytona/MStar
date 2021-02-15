@@ -49,11 +49,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="HeaderScriptElements.cs" />
-    <Compile Include="MainWindow_v2.cs">
+    <Compile Include="ImagePanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="MainWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MainWindow_v2.Designer.cs">
-      <DependentUpon>MainWindow_v2.cs</DependentUpon>
+    <Compile Include="MainWindow.Designer.cs">
+      <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Partition.cs" />
     <Compile Include="PartitionPanel.cs">
@@ -68,11 +71,10 @@
       <DependentUpon>ProtocolForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ScriptElementsHolder.cs" />
-    <Compile Include="Sparse.cs" />
     <Compile Include="TextBoxLogger.cs" />
     <Compile Include="WriteFileCommands.cs" />
-    <EmbeddedResource Include="MainWindow_v2.resx">
-      <DependentUpon>MainWindow_v2.cs</DependentUpon>
+    <EmbeddedResource Include="MainWindow.resx">
+      <DependentUpon>MainWindow.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -104,6 +106,10 @@
     <ProjectReference Include="..\lzo_clr\lzo_clr.vcxproj">
       <Project>{dbb317be-25a2-4475-96db-3feee316350e}</Project>
       <Name>lzo_clr</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\sparse_clr\sparse_clr.vcxproj">
+      <Project>{52df9be2-2ff6-47a8-8b2e-4e7da50d4774}</Project>
+      <Name>sparse_clr</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,6 +1,6 @@
 ﻿namespace MStarGUI
 {
-    partial class MainWindow_v2
+    partial class MainWindow
     {
         /// <summary>
         /// Required designer variable.
@@ -28,12 +28,14 @@
         /// </summary>
         private void InitializeComponent ()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow_v2));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
             this.MainTabControl = new System.Windows.Forms.TabControl();
             this.UnpackPage = new System.Windows.Forms.TabPage();
             this.LeftPanel = new System.Windows.Forms.Panel();
             this.PartitionsTablePanel = new System.Windows.Forms.Panel();
             this.PartitionsTableTitlePanel = new System.Windows.Forms.Panel();
+            this.PartitionChunksTitleLabel = new System.Windows.Forms.Label();
+            this.PartitionTypeTitleLabel = new System.Windows.Forms.Label();
             this.PartitionSizeTitleLabel = new System.Windows.Forms.Label();
             this.PartitionNameTitleLabel = new System.Windows.Forms.Label();
             this.SelectAllPartitionsCheckBox = new System.Windows.Forms.CheckBox();
@@ -49,7 +51,7 @@
             this.ImagesTablePanel = new System.Windows.Forms.Panel();
             this.ImagesTableTitlePanel = new System.Windows.Forms.Panel();
             this.ImageSizeTitleLabel = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
+            this.ImageNameTitleLabel = new System.Windows.Forms.Label();
             this.SelectAllImagesCheckBox = new System.Windows.Forms.CheckBox();
             this.PackageFolderChooseButton = new System.Windows.Forms.Button();
             this.PackageFolderLabel = new System.Windows.Forms.Label();
@@ -58,6 +60,7 @@
             this.PackingProtocolTextBox = new System.Windows.Forms.TextBox();
             this.PackPutton = new System.Windows.Forms.Button();
             this.PartitionPropertyGrid = new System.Windows.Forms.PropertyGrid();
+            this.ImageTypeTitleLabel = new System.Windows.Forms.Label();
             this.MainTabControl.SuspendLayout();
             this.UnpackPage.SuspendLayout();
             this.LeftPanel.SuspendLayout();
@@ -127,6 +130,8 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.PartitionsTableTitlePanel.BackColor = System.Drawing.SystemColors.ControlLight;
             this.PartitionsTableTitlePanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.PartitionsTableTitlePanel.Controls.Add(this.PartitionChunksTitleLabel);
+            this.PartitionsTableTitlePanel.Controls.Add(this.PartitionTypeTitleLabel);
             this.PartitionsTableTitlePanel.Controls.Add(this.PartitionSizeTitleLabel);
             this.PartitionsTableTitlePanel.Controls.Add(this.PartitionNameTitleLabel);
             this.PartitionsTableTitlePanel.Controls.Add(this.SelectAllPartitionsCheckBox);
@@ -135,6 +140,24 @@
             this.PartitionsTableTitlePanel.Padding = new System.Windows.Forms.Padding(5);
             this.PartitionsTableTitlePanel.Size = new System.Drawing.Size(753, 30);
             this.PartitionsTableTitlePanel.TabIndex = 0;
+            // 
+            // PartitionChunksTitleLabel
+            // 
+            this.PartitionChunksTitleLabel.AutoSize = true;
+            this.PartitionChunksTitleLabel.Location = new System.Drawing.Point(267, 7);
+            this.PartitionChunksTitleLabel.Name = "PartitionChunksTitleLabel";
+            this.PartitionChunksTitleLabel.Size = new System.Drawing.Size(103, 13);
+            this.PartitionChunksTitleLabel.TabIndex = 7;
+            this.PartitionChunksTitleLabel.Text = "Количество частей";
+            // 
+            // PartitionTypeTitleLabel
+            // 
+            this.PartitionTypeTitleLabel.AutoSize = true;
+            this.PartitionTypeTitleLabel.Location = new System.Drawing.Point(201, 7);
+            this.PartitionTypeTitleLabel.Name = "PartitionTypeTitleLabel";
+            this.PartitionTypeTitleLabel.Size = new System.Drawing.Size(26, 13);
+            this.PartitionTypeTitleLabel.TabIndex = 6;
+            this.PartitionTypeTitleLabel.Text = "Тип";
             // 
             // PartitionSizeTitleLabel
             // 
@@ -283,8 +306,9 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.ImagesTableTitlePanel.BackColor = System.Drawing.SystemColors.ControlLight;
             this.ImagesTableTitlePanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.ImagesTableTitlePanel.Controls.Add(this.ImageTypeTitleLabel);
             this.ImagesTableTitlePanel.Controls.Add(this.ImageSizeTitleLabel);
-            this.ImagesTableTitlePanel.Controls.Add(this.label2);
+            this.ImagesTableTitlePanel.Controls.Add(this.ImageNameTitleLabel);
             this.ImagesTableTitlePanel.Controls.Add(this.SelectAllImagesCheckBox);
             this.ImagesTableTitlePanel.Location = new System.Drawing.Point(1, 1);
             this.ImagesTableTitlePanel.Name = "ImagesTableTitlePanel";
@@ -301,14 +325,14 @@
             this.ImageSizeTitleLabel.TabIndex = 5;
             this.ImageSizeTitleLabel.Text = "Размер";
             // 
-            // label2
+            // ImageNameTitleLabel
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(35, 7);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(29, 13);
-            this.label2.TabIndex = 4;
-            this.label2.Text = "Имя";
+            this.ImageNameTitleLabel.AutoSize = true;
+            this.ImageNameTitleLabel.Location = new System.Drawing.Point(35, 7);
+            this.ImageNameTitleLabel.Name = "ImageNameTitleLabel";
+            this.ImageNameTitleLabel.Size = new System.Drawing.Size(29, 13);
+            this.ImageNameTitleLabel.TabIndex = 4;
+            this.ImageNameTitleLabel.Text = "Имя";
             // 
             // SelectAllImagesCheckBox
             // 
@@ -323,7 +347,7 @@
             // PackageFolderChooseButton
             // 
             this.PackageFolderChooseButton.Image = ((System.Drawing.Image)(resources.GetObject("PackageFolderChooseButton.Image")));
-            this.PackageFolderChooseButton.Location = new System.Drawing.Point(0, 8);
+            this.PackageFolderChooseButton.Location = new System.Drawing.Point(9, 8);
             this.PackageFolderChooseButton.Name = "PackageFolderChooseButton";
             this.PackageFolderChooseButton.Size = new System.Drawing.Size(36, 28);
             this.PackageFolderChooseButton.TabIndex = 5;
@@ -392,13 +416,22 @@
             this.PartitionPropertyGrid.Size = new System.Drawing.Size(407, 222);
             this.PartitionPropertyGrid.TabIndex = 1;
             // 
-            // MainWindow_v2
+            // ImageTypeTitleLabel
+            // 
+            this.ImageTypeTitleLabel.AutoSize = true;
+            this.ImageTypeTitleLabel.Location = new System.Drawing.Point(208, 7);
+            this.ImageTypeTitleLabel.Name = "ImageTypeTitleLabel";
+            this.ImageTypeTitleLabel.Size = new System.Drawing.Size(26, 13);
+            this.ImageTypeTitleLabel.TabIndex = 7;
+            this.ImageTypeTitleLabel.Text = "Тип";
+            // 
+            // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1212, 814);
             this.Controls.Add(this.MainTabControl);
-            this.Name = "MainWindow_v2";
+            this.Name = "MainWindow";
             this.Text = "Утилита разборки и сборки прошивок";
             this.MainTabControl.ResumeLayout(false);
             this.UnpackPage.ResumeLayout(false);
@@ -442,7 +475,7 @@
         private System.Windows.Forms.Panel ImagesTablePanel;
         private System.Windows.Forms.Panel ImagesTableTitlePanel;
         private System.Windows.Forms.Label ImageSizeTitleLabel;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label ImageNameTitleLabel;
         private System.Windows.Forms.CheckBox SelectAllImagesCheckBox;
         private System.Windows.Forms.Button PackageFolderChooseButton;
         private System.Windows.Forms.Label PackageFolderLabel;
@@ -452,5 +485,8 @@
         private System.Windows.Forms.PropertyGrid PartitionPropertyGrid;
         private System.Windows.Forms.Splitter splitter1;
         private System.Windows.Forms.Splitter splitter2;
+        private System.Windows.Forms.Label PartitionTypeTitleLabel;
+        private System.Windows.Forms.Label PartitionChunksTitleLabel;
+        private System.Windows.Forms.Label ImageTypeTitleLabel;
     }
 }

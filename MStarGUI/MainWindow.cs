@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace MStarGUI
 {
-    public partial class MainWindow_v2 : Form
+    public partial class MainWindow : Form
     {
         string WorkDirectory;
         string FirmwareDir;
@@ -19,14 +19,14 @@ namespace MStarGUI
 
         ScriptElementsHolder ScriptHolder;
 
-        readonly Dictionary<string, PartitionPanel> ImagePanels = new Dictionary<string, PartitionPanel>();
+        readonly Dictionary<string, ImagePanel> ImagePanels = new Dictionary<string, ImagePanel>();
 
         readonly IMessageLogger UnpackLogger;
         readonly IMessageLogger PackLogger;
 
         bool FullPackage;
 
-        public MainWindow_v2 ()
+        public MainWindow ()
         {
             InitializeComponent();
             WorkDirectory = Environment.CurrentDirectory;
@@ -79,31 +79,40 @@ namespace MStarGUI
 
         private void fillPartitionsPanel (Dictionary<string, Partition> partitions)
         {
+            SelectAllPartitionsCheckBox.Checked = false;
+
             PartitionsTablePanel.Controls.Clear();
             PartitionsTablePanel.Controls.Add( PartitionsTableTitlePanel );
 
             Graphics formGraphics = CreateGraphics();
-            float nameWidth = 0;
-            float sizeWidth = 0;
+            float[] widths = { 0, 0, 0, 0 };
             foreach (Partition partition in partitions.Values)
             {
                 float width = formGraphics.MeasureString( partition.Name, FirmwareFileLabel.Font ).Width;
-                if (width > nameWidth)
-                    nameWidth = width;
+                if (width > widths[(int)PartitionPanel.Columns.Name])
+                    widths[(int)PartitionPanel.Columns.Name] = width;
 
                 width = formGraphics.MeasureString( partition.getSizeString(), FirmwareFileLabel.Font ).Width;
-                if (width > sizeWidth)
+                if (width > widths[(int)PartitionPanel.Columns.Size])
+                    widths[(int)PartitionPanel.Columns.Size] = width;
 
-                    sizeWidth = width;
+                width = formGraphics.MeasureString( partition.getTypeString(), FirmwareFileLabel.Font ).Width;
+                if (width > widths[(int)PartitionPanel.Columns.Type])
+                    widths[(int)PartitionPanel.Columns.Type] = width;
+
+                width = formGraphics.MeasureString( partition.getChunksString(), FirmwareFileLabel.Font ).Width;
+                if (width > widths[(int)PartitionPanel.Columns.Chunks])
+                    widths[(int)PartitionPanel.Columns.Chunks] = width;
             }
 
-            PartitionSizeTitleLabel.Width = (int)(nameWidth + .5) + 2;
-            PartitionSizeTitleLabel.Left = PartitionNameTitleLabel.Left + (int)(nameWidth + .5) + 4;
+            PartitionSizeTitleLabel.Left = PartitionNameTitleLabel.Left + (int)(widths[(int)PartitionPanel.Columns.Name] + .5) + 10;
+            PartitionTypeTitleLabel.Left = PartitionSizeTitleLabel.Left + (int)(widths[(int)PartitionPanel.Columns.Size] + .5) + 10;
+            PartitionChunksTitleLabel.Left = PartitionTypeTitleLabel.Left + (int)(widths[(int)PartitionPanel.Columns.Type] + .5) + 10;
 
             int index = 1;
             foreach (Partition partition in partitions.Values)
             {
-                PartitionPanel rowPanel = new PartitionPanel( partition, nameWidth, sizeWidth );
+                PartitionPanel rowPanel = new PartitionPanel( partition, widths );
                 rowPanel.Top = (index++) * (rowPanel.Height - 1) + 1;
                 rowPanel.Width = PartitionsTablePanel.ClientSize.Width - 3;
                 PartitionsTablePanel.Controls.Add( rowPanel );
@@ -173,6 +182,8 @@ namespace MStarGUI
 
         private void fillImagesPanel (Dictionary<string, Partition> partitions)
         {
+            SelectAllImagesCheckBox.Checked = false;
+
             List<Partition> imagePartitions = new List<Partition>();
             foreach (Partition partition in partitions.Values)
             {
@@ -185,29 +196,35 @@ namespace MStarGUI
             ImagesTablePanel.Controls.Add( ImagesTableTitlePanel );
 
             Graphics formGraphics = CreateGraphics();
-            float nameWidth = 0;
-            float sizeWidth = 0;
+            float[] widths = { 0, 0, 0 };
             foreach (Partition partition in imagePartitions)
             {
                 float width = formGraphics.MeasureString( partition.Name, FirmwareFileLabel.Font ).Width;
-                if (width > nameWidth)
-                    nameWidth = width;
+                if (width > widths[(int)ImagePanel.Columns.Name])
+                    widths[(int)ImagePanel.Columns.Name] = width;
 
                 width = formGraphics.MeasureString( partition.getSizeString(), FirmwareFileLabel.Font ).Width;
-                if (width > sizeWidth)
-                    sizeWidth = width;
+                if (width > widths[(int)ImagePanel.Columns.Size])
+                    widths[(int)ImagePanel.Columns.Size] = width;
+
+                width = formGraphics.MeasureString( partition.getTypeString(), FirmwareFileLabel.Font ).Width;
+                if (width > widths[(int)ImagePanel.Columns.Type])
+                    widths[(int)ImagePanel.Columns.Type] = width;
             }
 
-            ImageSizeTitleLabel.Width = (int)(nameWidth + .5) + 2;
-            ImageSizeTitleLabel.Left = PartitionNameTitleLabel.Left + (int)(nameWidth + .5) + 4;
+            ImageSizeTitleLabel.Left = ImageNameTitleLabel.Left + (int)(widths[(int)ImagePanel.Columns.Name] + .5) + 10;
+            ImageTypeTitleLabel.Left = ImageSizeTitleLabel.Left + (int)(widths[(int)ImagePanel.Columns.Size] + .5) + 10;
+
+            //            PartitionTypeTitleLabel.Width = (int)(nameWidth + .5) + 2;
+            //PartitionChunksTitleLabel.Left = PartitionTypeTitleLabel.Left + (int)(widths[(int)PartitionPanel.Columns.Type] + .5) + 10;
 
             ImagePanels.Clear();
             int index = 1;
             foreach (Partition partition in imagePartitions)
             {
-                PartitionPanel rowPanel = new PartitionPanel( partition, nameWidth, sizeWidth );
+                ImagePanel rowPanel = new ImagePanel( partition, widths );
                 rowPanel.Top = (index++) * (rowPanel.Height - 1) + 1;
-                rowPanel.Width = PartitionsTablePanel.ClientSize.Width - 3;
+                rowPanel.Width = ImagesTablePanel.ClientSize.Width - 3;
                 ImagesTablePanel.Controls.Add( rowPanel );
                 ImagePanels.Add( partition.Name, rowPanel );
 
@@ -260,7 +277,7 @@ namespace MStarGUI
                                 continue;
                             writtenPartitions.Add( command.PartitionName );
 
-                            if (ImagePanels.TryGetValue( command.PartitionName, out PartitionPanel panel ))
+                            if (ImagePanels.TryGetValue( command.PartitionName, out ImagePanel panel ))
                             {
                                 string filename = Path.Combine( FirmwareDir, command.PartitionName + ".img" );
                                 if (File.Exists( filename ) && panel.Checked)
@@ -353,6 +370,7 @@ namespace MStarGUI
         private void PackageFolderChooseButton_Click (object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "Заголовки прошивок | .Header";
             ofd.DefaultExt = ".Header";
             ofd.InitialDirectory = WorkDirectory;
             if (ofd.ShowDialog( this ) == DialogResult.OK)
@@ -369,6 +387,7 @@ namespace MStarGUI
                     {
                         ScriptHolder = newScriptHolder;
                         FirmwareDir = Path.GetDirectoryName( ofd.FileName );
+                        PackageFolderLabel.Text = "Папка сборки : " + FirmwareDir;
                         fillImagesPanel( ScriptHolder.getPartitions() );
                     }
                 }
@@ -379,8 +398,8 @@ namespace MStarGUI
         {
             foreach (Control control in ImagesTablePanel.Controls)
             {
-                if (control is PartitionPanel partitionPanel)
-                    partitionPanel.Checked = SelectAllImagesCheckBox.Checked;
+                if (control is ImagePanel imagePanel)
+                    imagePanel.Checked = SelectAllImagesCheckBox.Checked;
             }
         }
     }

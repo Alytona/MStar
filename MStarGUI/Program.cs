@@ -16,7 +16,7 @@ namespace MStarGUI
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault( false );
-            Application.Run( new MainWindow_v2() );
+            Application.Run( new MainWindow() );
         }
     }
 }

@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle( "MStarGUI" )]
-[assembly: AssemblyDescription( "" )]
+[assembly: AssemblyTitle( "MStar firmware archiever" )]
+[assembly: AssemblyDescription( "MStar firmware archiever" )]
 [assembly: AssemblyConfiguration( "" )]
-[assembly: AssemblyCompany( "" )]
-[assembly: AssemblyProduct( "MStarGUI" )]
-[assembly: AssemblyCopyright( "Copyright ©  2021" )]
+[assembly: AssemblyCompany( "Alytona" )]
+[assembly: AssemblyProduct( "MStar firmware archiever" )]
+[assembly: AssemblyCopyright( "Copyright by Alytona © 2021" )]
 [assembly: AssemblyTrademark( "" )]
 [assembly: AssemblyCulture( "" )]
 

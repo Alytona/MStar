@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace MStarGUI
 {
-    class PartitionPanel : Panel
+    class ImagePanel : Panel
     {
         public readonly Partition Partition;
 
@@ -16,16 +16,13 @@ namespace MStarGUI
         {
             Name,
             Size,
-            Type, 
-            Chunks
+            Type
         }
 
         CheckBox SelectCheckBox;
         Label NameLabel;
         Label SizeLabel;
-//        Label FileSizeLabel;
         Label TypeLabel;
-        Label ChunksLabel;
 
         public PropertyGrid PartitionPropertyGrid
         {
@@ -39,7 +36,7 @@ namespace MStarGUI
             set => SelectCheckBox.Checked = value;
         }
 
-        public PartitionPanel (Partition partition, float[] columnsWidths)
+        public ImagePanel (Partition partition, float[] columnsWidths)
         {
             Partition = partition;
             initControls( columnsWidths );
@@ -75,15 +72,6 @@ namespace MStarGUI
             SizeLabel.TextAlign = ContentAlignment.TopRight;
             Controls.Add( SizeLabel );
 
-            //FileSizeLabel = new Label();
-            //FileSizeLabel.Location = new Point( SizeLabel.Left + SizeLabel.Width + 4, 7 );
-            //FileSizeLabel.AutoSize = false;
-            //FileSizeLabel.Width = (int)(sizeWidth + .5) + 4;
-            //FileSizeLabel.Height = FileSizeLabel.Font.Height;
-            //FileSizeLabel.Text = Partition.getChunksSizeString();
-            //FileSizeLabel.TextAlign = ContentAlignment.TopRight;
-            //Controls.Add( FileSizeLabel );
-
             TypeLabel = new Label();
             TypeLabel.Location = new Point( SizeLabel.Left + SizeLabel.Width + 5, 7 );
             TypeLabel.AutoSize = false;
@@ -92,15 +80,6 @@ namespace MStarGUI
             TypeLabel.Text = Partition.getTypeString();
             //TypeLabel.TextAlign = ContentAlignment.TopLeft;
             Controls.Add( TypeLabel );
-
-            ChunksLabel = new Label();
-            ChunksLabel.Location = new Point( TypeLabel.Left + TypeLabel.Width + 5, 7 );
-            ChunksLabel.AutoSize = false;
-            ChunksLabel.Width = (int)(columnsWidths[(int)Columns.Chunks] + .5) + 5;
-            ChunksLabel.Height = ChunksLabel.Font.Height;
-            ChunksLabel.Text = Partition.getChunksString();
-            //ChunksLabel.TextAlign = ContentAlignment.TopLeft;
-            Controls.Add( ChunksLabel );
 
             Click += selectPartition;
         }
