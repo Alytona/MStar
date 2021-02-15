@@ -18,3 +18,12 @@
 /lzo_clr/Debug
 /lzo_clr/Release
 /Release
+/lzo/Debug
+/sparse/Debug
+/sparse/Release
+/sparse/-
+/sparse_clr/Debug
+/sparse_clr/Release
+/sparse_clr_test/bin
+/sparse_clr_test/obj
+/sparse_clr/RCa01800
