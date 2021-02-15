@@ -11,7 +11,7 @@ extern "C" {
 	int lzop_decompress (const char* input_name, const char* output_name);
 }
 
-namespace Lzo 
+namespace Compress 
 {
 	bool Lzo::Compress ( String^ plainFileName, String^ compressedFileName ) 
 	{

@@ -2,7 +2,7 @@
 
 using namespace System;
 
-namespace Lzo {
+namespace Compress {
 
 	public ref class Lzo
 	{

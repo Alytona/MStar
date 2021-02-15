@@ -95,7 +95,8 @@
       <AdditionalIncludeDirectories>$(SolutionDir)lzo\include;$(SolutionDir)lzop\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(SolutionDir)$(Configuration)\lzop_static.lib;$(SolutionDir)lzo\lib\lzo_x86.lib</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -108,7 +109,8 @@
       <AdditionalIncludeDirectories>$(SolutionDir)lzo\include;$(SolutionDir)lzop\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(SolutionDir)$(Configuration)\lzop_static.lib</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -118,10 +120,13 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)lzo\include;$(SolutionDir)lzop\src</AdditionalIncludeDirectories>
+      <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(SolutionDir)lzop\lib\lzop.lib;$(SolutionDir)lzo\lib\lzo_x86.lib</AdditionalDependencies>
-      <OutputFile>$(SolutionDir)_release\$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -133,7 +138,8 @@
       <AdditionalIncludeDirectories>$(SolutionDir)lzo\include;$(SolutionDir)lzop\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(SolutionDir)$(Configuration)\lzop_static.lib</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -167,6 +173,9 @@
   <ItemGroup>
     <ProjectReference Include="..\lzop\lzop_static.vcxproj">
       <Project>{f9844b95-dd82-4ef0-937b-aadee9679739}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\lzo\lzo_static.vcxproj">
+      <Project>{d1f1a797-74bb-4ed8-a73f-c354a0b403cb}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

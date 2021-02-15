@@ -7,7 +7,7 @@
 
 #include "FileHandlers.h"
 
-namespace Lzo
+namespace Compress
 {
 	errno_t InputFileHandle::open()
 	{

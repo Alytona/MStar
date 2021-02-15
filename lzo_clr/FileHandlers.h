@@ -4,7 +4,7 @@
 using namespace System;
 using namespace System::Runtime::InteropServices;
 
-namespace Lzo
+namespace Compress
 {
 	class CStrMarshaller
 	{
