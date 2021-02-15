@@ -38,6 +38,7 @@ namespace MStarGUI
         private void FirmwareChooseButton_Click (object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "Файлы прошивок | *.bin";
             ofd.InitialDirectory = WorkDirectory;
             if (ofd.ShowDialog( this ) == DialogResult.OK)
             {
