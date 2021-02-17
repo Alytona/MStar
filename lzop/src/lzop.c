@@ -1675,10 +1675,23 @@ lzo_bool p_open_fi(const char *name)
 
 /* open file */
     errno = 0;
+
     r = stat(fi.name, &fi.st);
     saved_errno = errno;
-    if (r != 0)
-        memset(&fi.st, 0, sizeof(fi.st));
+    if (r != 0) {
+        struct _stat64 st64;
+        r = _stat64(fi.name, &st64);
+        saved_errno = errno;
+        if (r != 0)
+            memset(&fi.st, 0, sizeof(fi.st));
+        else {
+            memcpy(&fi.st, &st64, sizeof(fi.st));
+            fi.st.st_size = (int)st64.st_size;
+            fi.st.st_atime = st64.st_atime;
+            fi.st.st_mtime = st64.st_mtime;
+            fi.st.st_ctime = st64.st_ctime;
+        }
+    }
 #if defined(HAVE_LSTAT) && defined(S_ISLNK)
     r2 = lstat(fi.name, &fi.lst);
     if (r2 != 0)
@@ -3195,7 +3208,8 @@ int __acc_cdecl_main main(int argc, char *argv[])
 int __cdecl lzop_compress (const char* input_name, const char* output_name)
 {
     opt_cmd = CMD_COMPRESS;
-    set_method(0, 1);
+//    set_method(0, 1);
+    set_method(0, 5);
     set_output_name(output_name, 1);
 
     if (!x_enter(NULL))
