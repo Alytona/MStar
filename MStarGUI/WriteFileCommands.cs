@@ -11,6 +11,15 @@ namespace MStarGUI
     {
         readonly protected FilePartLoadCommand LoadCommand;
 
+        public List<IHeaderScriptElement> Prolog
+        {
+            get; set;
+        }
+        public InformationalBlock Epilog
+        {
+            get; set;
+        }
+
         public string Address
         {
             get;
@@ -38,16 +47,44 @@ namespace MStarGUI
                 throw new Exception( "Для команды записи файла сегмента должна быть указана команда его чтения." );
             LoadCommand = loadCommand;
         }
-        protected WriteFileCommand (WriteFileCommand otherCommand, long offset, long size)
+        protected WriteFileCommand (WriteFileCommand otherCommand, long offset, long size, bool copyProlog = true)
         {
-            LoadCommand = new FilePartLoadCommand( otherCommand.LoadCommand, offset, size );
             Address = otherCommand.Address;
             PartitionName = otherCommand.PartitionName;
             Size = size;
+            LoadCommand = new FilePartLoadCommand( otherCommand.LoadCommand, offset, size );
+            if (copyProlog) {
+                Prolog = otherCommand.Prolog;
+                for (int i = 0; i < Prolog.Count; i++)
+                {
+                    if (Prolog[i] is FilePartLoadCommand)
+                    {
+                        Prolog[i] = LoadCommand;
+                    }
+                }
+            }
+            Epilog = otherCommand.Epilog;
         }
 
         public abstract string getTypeName ();
         public abstract void writeToHeader (StreamWriter writer);
+        
+        protected void writeProlog (StreamWriter writer)
+        {
+            if (Prolog != null)
+            {
+                foreach (IHeaderScriptElement prologElement in Prolog)
+                {
+                    prologElement.writeToHeader( writer );
+                }
+            }
+        }
+        protected void writeEpilog (StreamWriter writer)
+        {
+            if (Epilog != null) {
+                Epilog.writeToHeader(writer );
+            }
+        }
     }
 
     public class WriteBootCommand : WriteFileCommand
@@ -78,7 +115,13 @@ namespace MStarGUI
             {
                 throw new Exception( $"Ошибка разбора размера сегмента в команде mmc write.boot (четвёртый параметр)", error );
             }
-            PartitionName = "BOOT" + orderNumber;
+
+            if (BootTypeValue == BootType.SecureBoot)
+                PartitionName = "sboot";
+            else if (BootTypeValue == BootType.RomBoot)
+                PartitionName = "rboot";
+            else
+                PartitionName = "BOOT" + orderNumber;
         }
         public WriteBootCommand (WriteBootCommand otherCommand, long offset, long size) : base( otherCommand, offset, size )
         {
@@ -90,8 +133,9 @@ namespace MStarGUI
 
         public override void writeToHeader (StreamWriter writer)
         {
-            LoadCommand.writeTo( writer );
-            writer.WriteLine( $"mmc write.boot {BootTypeValue} {Address} {Unknown2} 0x{Size:x}" );
+            writeProlog( writer );
+            writer.WriteLine( $"mmc write.boot {(int)BootTypeValue} {Address} {Unknown2} 0x{Size:x}" );
+            writeEpilog( writer );
         }
     }
 
@@ -129,11 +173,12 @@ namespace MStarGUI
 
         public override void writeToHeader (StreamWriter writer)
         {
-            LoadCommand.writeTo( writer );
+            writeProlog( writer );
             writer.Write( $"mmc write.p {Address} {PartitionName} 0x{Size:X}" );
             if (!string.IsNullOrEmpty( Unknown ))
                 writer.Write( $" {Unknown}" );
             writer.WriteLine();
+            writeEpilog( writer );
         }
     }
 
@@ -165,8 +210,10 @@ namespace MStarGUI
                 SizeFromLoadCommand = false;
             }
         }
-        public SparseWriteCommand (SparseWriteCommand otherCommand, long offset, long size) : base( otherCommand, offset, size )
+        public SparseWriteCommand (SparseWriteCommand otherCommand, long offset, long size, bool firstChunk) : base( otherCommand, offset, size, copyProlog: firstChunk )
         {
+            if (!firstChunk)
+                Prolog = new List<IHeaderScriptElement>() { LoadCommand };
             SizeFromLoadCommand = otherCommand.SizeFromLoadCommand;
         }
 
@@ -174,7 +221,7 @@ namespace MStarGUI
 
         public override void writeToHeader (StreamWriter writer)
         {
-            LoadCommand.writeTo( writer );
+            writeProlog( writer );
             writer.Write( $"sparse_write mmc {Address} {PartitionName}" );
             if (SizeFromLoadCommand)
                 writer.Write( " $(filesize)" );
@@ -208,9 +255,11 @@ namespace MStarGUI
             PartitionName = commandTokens[4];
             Unknown = (commandTokens.Length == 6) ? commandTokens[5] : "";
         }
-        public UnlzoCommand (UnlzoCommand otherCommand, long offset, long size) : base( otherCommand, offset, size )
+        public UnlzoCommand (UnlzoCommand otherCommand, long offset, long size, bool firstChunk) : base( otherCommand, offset, size, copyProlog: firstChunk )
         {
-            FirstChunk = otherCommand.FirstChunk;
+            FirstChunk = firstChunk;
+            if (!firstChunk)
+                Prolog = new List<IHeaderScriptElement>() { LoadCommand };
             Unknown = otherCommand.Unknown;
         }
 
@@ -218,15 +267,16 @@ namespace MStarGUI
 
         public override void writeToHeader (StreamWriter writer)
         {
-            LoadCommand.writeTo( writer );
+            writeProlog( writer );
             if (FirstChunk) 
                 writer.Write( $"mmc unlzo " );
             else
                 writer.Write( $"mmc unlzo.cont " );
-            writer.Write( $"{Address} 0x{Size:x} {PartitionName}" );
+            writer.Write( $"{Address} 0x{Size:X} {PartitionName}" );
             if (!string.IsNullOrEmpty( Unknown ))
                 writer.Write( $" {Unknown}" );
             writer.WriteLine();
+            writeEpilog( writer );
         }
     }
     public class StoreSecureInfoCommand : WriteFileCommand
@@ -250,8 +300,9 @@ namespace MStarGUI
 
         public override void writeToHeader (StreamWriter writer)
         {
-            LoadCommand.writeTo( writer );
+            writeProlog( writer );
             writer.WriteLine( $"store_secure_info {PartitionName} {Address}" );
+            writeEpilog( writer );
         }
     }
     public class StoreNuttxConfigCommand : WriteFileCommand
@@ -275,8 +326,9 @@ namespace MStarGUI
 
         public override void writeToHeader (StreamWriter writer)
         {
-            LoadCommand.writeTo( writer );
+            writeProlog( writer );
             writer.WriteLine( $"store_nuttx_config {PartitionName} {Address}" );
+            writeEpilog( writer );
         }
     }
 }

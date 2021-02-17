@@ -167,17 +167,19 @@ namespace MStarGUI
             messageLogger.logMessage( "Выгрузка образа " + filename + "." );
 
             List<string> chunkNames = new List<string>();
-/*
-            readFileFromBinary( firmwareStream, 0, 16 * 1024, filename + ".header" );
-            readFileFromBinary( firmwareStream, 16 * 1024, firmwareStream.Length - 32 - 16 * 1024, filename + ".body" );
-            readFileFromBinary( firmwareStream, 0, firmwareStream.Length - 20, filename + ".all_minus_20" );
-            messageLogger.logMessage( $"header CRC 1: { reverseBytes( computeCrc32( firmwareStream.Name, 0, 16 * 1024 ) ):X8}" );
-            messageLogger.logMessage( $"header CRC 2: { reverseBytes( computeCrc32( filename + ".header" ) ):X8}" );
-            messageLogger.logMessage( $"body CRC 1: { reverseBytes( computeCrc32( firmwareStream.Name, 16 * 1024, firmwareStream.Length - 32 - 16 * 1024 ) ):X8}" );
-            messageLogger.logMessage( $"body CRC 2: { reverseBytes( computeCrc32( filename + ".body" ) ):X8}" );
-            messageLogger.logMessage( $"firmware without last 20 bytes CRC 1: { reverseBytes( computeCrc32( firmwareStream.Name, 0, firmwareStream.Length - 20 ) ):X8}" );
-            messageLogger.logMessage( $"firmware without last 20 bytes CRC 2: { reverseBytes( computeCrc32( filename + ".all_minus_20" ) ):X8}" );
-*/
+            /*
+                        readFileFromBinary( firmwareStream, 0, 16 * 1024, filename + ".header" );
+                        readFileFromBinary( firmwareStream, 16 * 1024, firmwareStream.Length - 32 - 16 * 1024, filename + ".body" );
+                        readFileFromBinary( firmwareStream, 0, firmwareStream.Length - 20, filename + ".all_minus_20" );
+                        messageLogger.logMessage( $"header CRC 1: { reverseBytes( computeCrc32( firmwareStream.Name, 0, 16 * 1024 ) ):X8}" );
+                        messageLogger.logMessage( $"header CRC 2: { reverseBytes( computeCrc32( filename + ".header" ) ):X8}" );
+                        messageLogger.logMessage( $"body CRC 1: { reverseBytes( computeCrc32( firmwareStream.Name, 16 * 1024, firmwareStream.Length - 32 - 16 * 1024 ) ):X8}" );
+                        messageLogger.logMessage( $"body CRC 2: { reverseBytes( computeCrc32( filename + ".body" ) ):X8}" );
+                        messageLogger.logMessage( $"firmware without last 20 bytes CRC 1: { reverseBytes( computeCrc32( firmwareStream.Name, 0, firmwareStream.Length - 20 ) ):X8}" );
+                        messageLogger.logMessage( $"firmware without last 20 bytes CRC 2: { reverseBytes( computeCrc32( filename + ".all_minus_20" ) ):X8}" );
+            */
+
+            int chunkIndex = 1;
             foreach (WriteFileCommand command in Chunks)
             {
                 long offset = command.Offset;
@@ -192,6 +194,7 @@ namespace MStarGUI
                 else if (command is UnlzoCommand unlzoCommand) 
                 {
                     string lzoFilename = filename + $".{offset:X}";
+                    //string lzoFilename = filename + $".chunk.{chunkIndex}";
                     readFileFromBinary( firmwareStream, offset, size, lzoFilename );
                     chunkNames.Add( lzoFilename );
                 }
@@ -200,6 +203,8 @@ namespace MStarGUI
                     readFileFromBinary( firmwareStream, offset, size, filename );
                 }
                 //if (command is WritePiCommand writePiCommand || command is WriteBootCommand writeBootCommand || )
+
+                chunkIndex++;
             }
 
             if (chunkNames.Count > 0)
@@ -209,7 +214,7 @@ namespace MStarGUI
                     messageLogger.logMessage( "Распаковка образа " + filename + "." );
                     Compress.Sparse.Decompress( chunkNames.ToArray(), filename );
                     File.Delete( filename + ".sparse" );
-                    foreach (string chunkFileName in chunkNames) 
+                    foreach (string chunkFileName in chunkNames)
                         File.Delete( chunkFileName );
                 }
                 else if (PackingType == PackingType.Lzo)
@@ -342,48 +347,79 @@ namespace MStarGUI
                         currentOffset = outputStream.Position;
                         long size = writeFileToBinary( outputStream, chunkFileName );
                         File.Delete( chunkFileName );
-                        chunks.Add( new SparseWriteCommand( writeSparseCommand, currentOffset, size ) );
+                        chunks.Add( new SparseWriteCommand( writeSparseCommand, currentOffset, size, firstChunk: index == 1 ) );
                         chunkFileName = imgFilename + ".chunk." + index++;
                     }
                 }
                 else if (command is UnlzoCommand unlzoCommand)
                 {
+                    const long chunkSize = 100 * 1024 * 1024;
+
                     messageLogger.logMessage( "Упаковка lzo." );
 
-                    using (FileStream inputStream = new FileStream( imgFilename, FileMode.Open, FileAccess.Read )) 
+                    string wholeLzoFilename = imgFilename + ".lzo";
+                    if (File.Exists( wholeLzoFilename ))
+                        File.Delete( wholeLzoFilename );
+                    Compress.Lzo.Compress( imgFilename, wholeLzoFilename );
+                    long packedLength = 0;
+                    using (FileStream inputStream = new FileStream( wholeLzoFilename, FileMode.Open, FileAccess.Read )) {
+                        packedLength = inputStream.Length;
+                    }
+
+                    if (packedLength < chunkSize)
                     {
-                        long chunkSize = 100 * 1024 * 1024;
-                        long imgLength = inputStream.Length;
-
-                        messageLogger.logMessage( "Разбиение на чанки." );
-                        int chunksCounter = 0;
-                        for (long position = 0; position < imgLength; position += chunkSize) {
-                            chunksCounter++;
-                            long remainderLength = imgLength - position;
-                            readFileFromBinary( inputStream, position, remainderLength >= chunkSize ? chunkSize : remainderLength, imgFilename + ".plain_chunk." + chunksCounter );
-                        }
-                        if (chunksCounter > 1)
-                            messageLogger.logMessage( "Упаковка " + chunksCounter + " частей." );
-                        for (int chunkIndex = 1; chunkIndex <= chunksCounter; chunkIndex++) 
+                        currentOffset = outputStream.Position;
+                        long size = writeFileToBinary( outputStream, wholeLzoFilename );
+                        //long size = (!File.Exists( imgFilename + ".chunk.1" )) ? 
+                        //    writeFileToBinary( outputStream, wholeLzoFilename ) :
+                        //    writeFileToBinary( outputStream, imgFilename + ".chunk.1" );
+                        chunks.Add( new UnlzoCommand( unlzoCommand, currentOffset, size, firstChunk: true ) );
+                    }
+                    else 
+                    {
+                        using (FileStream inputStream = new FileStream( imgFilename, FileMode.Open, FileAccess.Read ))
                         {
-                            messageLogger.logMessage( "Упаковка части " + chunkIndex + "." );
+                            long imgLength = inputStream.Length;
 
-                            string plainChunkName = imgFilename + ".plain_chunk." + chunkIndex;
-                            string chunkName = imgFilename + ".chunk." + chunkIndex;
-                            if (File.Exists( chunkName ))
-                                File.Delete( chunkName );
-                            Compress.Lzo.Compress( plainChunkName, chunkName );
-                            File.Delete( plainChunkName );
-                        }
-                        for (int chunkIndex = 1; chunkIndex <= chunksCounter; chunkIndex++)
-                        {
-                            messageLogger.logMessage( "Добавление части " + chunkIndex + "." );
-                            currentOffset = outputStream.Position;
-                            long size = writeFileToBinary( outputStream, imgFilename + ".chunk." + chunkIndex );
-                            File.Delete( imgFilename + ".chunk." + chunkIndex );
-                            chunks.Add( new UnlzoCommand( unlzoCommand, currentOffset, size ) );
+                            //if (!File.Exists( imgFilename + ".chunk.1" ))
+                            {
+                                messageLogger.logMessage( "Разбиение на чанки." );
+                                int chunksCounter = 0;
+                                for (long position = 0; position < imgLength; position += chunkSize)
+                                {
+                                    chunksCounter++;
+                                    long remainderLength = imgLength - position;
+                                    //readFileFromBinary( inputStream, position, remainderLength >= chunkSize ? chunkSize : remainderLength, imgFilename + $"a{(chunksCounter + 9):X}" );
+                                    readFileFromBinary( inputStream, position, remainderLength >= chunkSize ? chunkSize : remainderLength, imgFilename + ".plain_chunk." + chunksCounter );
+                                }
+                                if (chunksCounter > 1)
+                                    messageLogger.logMessage( "Упаковка " + chunksCounter + " частей." );
+                                for (int chunkIndex = 1; chunkIndex <= chunksCounter; chunkIndex++)
+                                {
+                                    messageLogger.logMessage( "Упаковка части " + chunkIndex + "." );
+
+                                    //string plainChunkName = imgFilename + $"a{(chunkIndex + 9):X}";
+                                    string plainChunkName = imgFilename + ".plain_chunk." + chunkIndex;
+                                    string chunkName = imgFilename + ".chunk." + chunkIndex;
+                                    if (File.Exists( chunkName ))
+                                        File.Delete( chunkName );
+                                    Compress.Lzo.Compress( plainChunkName, chunkName );
+                                    File.Delete( plainChunkName );
+                                }
+                            }
+                            //for (int chunkIndex = 1; chunkIndex <= chunksCounter; chunkIndex++)
+
+                            for (int chunkIndex = 1; File.Exists( imgFilename + ".chunk." + chunkIndex ); chunkIndex++)
+                            {
+                                messageLogger.logMessage( "Добавление части " + chunkIndex + "." );
+                                currentOffset = outputStream.Position;
+                                long size = writeFileToBinary( outputStream, imgFilename + ".chunk." + chunkIndex );
+                                File.Delete( imgFilename + ".chunk." + chunkIndex );
+                                chunks.Add( new UnlzoCommand( unlzoCommand, currentOffset, size, firstChunk: chunkIndex == 1 ) );
+                            }
                         }
                     }
+                    File.Delete( wholeLzoFilename );
                 }
             }
             return chunks;

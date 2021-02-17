@@ -50,6 +50,7 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.ImagesTablePanel = new System.Windows.Forms.Panel();
             this.ImagesTableTitlePanel = new System.Windows.Forms.Panel();
+            this.ImageTypeTitleLabel = new System.Windows.Forms.Label();
             this.ImageSizeTitleLabel = new System.Windows.Forms.Label();
             this.ImageNameTitleLabel = new System.Windows.Forms.Label();
             this.SelectAllImagesCheckBox = new System.Windows.Forms.CheckBox();
@@ -59,8 +60,6 @@
             this.panel4 = new System.Windows.Forms.Panel();
             this.PackingProtocolTextBox = new System.Windows.Forms.TextBox();
             this.PackPutton = new System.Windows.Forms.Button();
-            this.PartitionPropertyGrid = new System.Windows.Forms.PropertyGrid();
-            this.ImageTypeTitleLabel = new System.Windows.Forms.Label();
             this.MainTabControl.SuspendLayout();
             this.UnpackPage.SuspendLayout();
             this.LeftPanel.SuspendLayout();
@@ -119,9 +118,9 @@
             this.PartitionsTablePanel.BackColor = System.Drawing.SystemColors.ControlDark;
             this.PartitionsTablePanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.PartitionsTablePanel.Controls.Add(this.PartitionsTableTitlePanel);
-            this.PartitionsTablePanel.Location = new System.Drawing.Point(7, 43);
+            this.PartitionsTablePanel.Location = new System.Drawing.Point(2, 35);
             this.PartitionsTablePanel.Name = "PartitionsTablePanel";
-            this.PartitionsTablePanel.Size = new System.Drawing.Size(758, 731);
+            this.PartitionsTablePanel.Size = new System.Drawing.Size(763, 743);
             this.PartitionsTablePanel.TabIndex = 6;
             // 
             // PartitionsTableTitlePanel
@@ -138,7 +137,7 @@
             this.PartitionsTableTitlePanel.Location = new System.Drawing.Point(1, 1);
             this.PartitionsTableTitlePanel.Name = "PartitionsTableTitlePanel";
             this.PartitionsTableTitlePanel.Padding = new System.Windows.Forms.Padding(5);
-            this.PartitionsTableTitlePanel.Size = new System.Drawing.Size(753, 30);
+            this.PartitionsTableTitlePanel.Size = new System.Drawing.Size(758, 30);
             this.PartitionsTableTitlePanel.TabIndex = 0;
             // 
             // PartitionChunksTitleLabel
@@ -191,7 +190,7 @@
             // 
             this.FirmwareChooseButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.FirmwareChooseButton.Image = ((System.Drawing.Image)(resources.GetObject("FirmwareChooseButton.Image")));
-            this.FirmwareChooseButton.Location = new System.Drawing.Point(729, 9);
+            this.FirmwareChooseButton.Location = new System.Drawing.Point(729, 4);
             this.FirmwareChooseButton.Name = "FirmwareChooseButton";
             this.FirmwareChooseButton.Size = new System.Drawing.Size(36, 28);
             this.FirmwareChooseButton.TabIndex = 5;
@@ -201,7 +200,7 @@
             // FirmwareFileLabel
             // 
             this.FirmwareFileLabel.AutoSize = true;
-            this.FirmwareFileLabel.Location = new System.Drawing.Point(10, 16);
+            this.FirmwareFileLabel.Location = new System.Drawing.Point(9, 10);
             this.FirmwareFileLabel.Name = "FirmwareFileLabel";
             this.FirmwareFileLabel.Size = new System.Drawing.Size(95, 13);
             this.FirmwareFileLabel.TabIndex = 2;
@@ -213,7 +212,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.FirmwareChooseComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.FirmwareChooseComboBox.FormattingEnabled = true;
-            this.FirmwareChooseComboBox.Location = new System.Drawing.Point(111, 13);
+            this.FirmwareChooseComboBox.Location = new System.Drawing.Point(111, 8);
             this.FirmwareChooseComboBox.Name = "FirmwareChooseComboBox";
             this.FirmwareChooseComboBox.Size = new System.Drawing.Size(612, 21);
             this.FirmwareChooseComboBox.TabIndex = 1;
@@ -244,19 +243,20 @@
             this.UnpackingProtocolTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.UnpackingProtocolTextBox.Location = new System.Drawing.Point(6, 43);
+            this.UnpackingProtocolTextBox.Location = new System.Drawing.Point(6, 35);
             this.UnpackingProtocolTextBox.Multiline = true;
             this.UnpackingProtocolTextBox.Name = "UnpackingProtocolTextBox";
             this.UnpackingProtocolTextBox.ReadOnly = true;
-            this.UnpackingProtocolTextBox.Size = new System.Drawing.Size(406, 731);
+            this.UnpackingProtocolTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.UnpackingProtocolTextBox.Size = new System.Drawing.Size(410, 743);
             this.UnpackingProtocolTextBox.TabIndex = 4;
             // 
             // UnpackButton
             // 
             this.UnpackButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.UnpackButton.Location = new System.Drawing.Point(198, 9);
+            this.UnpackButton.Location = new System.Drawing.Point(266, 7);
             this.UnpackButton.Name = "UnpackButton";
-            this.UnpackButton.Size = new System.Drawing.Size(214, 23);
+            this.UnpackButton.Size = new System.Drawing.Size(150, 23);
             this.UnpackButton.TabIndex = 2;
             this.UnpackButton.Text = "Распаковать";
             this.UnpackButton.UseVisualStyleBackColor = true;
@@ -295,9 +295,9 @@
             this.ImagesTablePanel.BackColor = System.Drawing.SystemColors.ControlDark;
             this.ImagesTablePanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.ImagesTablePanel.Controls.Add(this.ImagesTableTitlePanel);
-            this.ImagesTablePanel.Location = new System.Drawing.Point(7, 43);
+            this.ImagesTablePanel.Location = new System.Drawing.Point(2, 35);
             this.ImagesTablePanel.Name = "ImagesTablePanel";
-            this.ImagesTablePanel.Size = new System.Drawing.Size(758, 731);
+            this.ImagesTablePanel.Size = new System.Drawing.Size(763, 743);
             this.ImagesTablePanel.TabIndex = 6;
             // 
             // ImagesTableTitlePanel
@@ -313,8 +313,17 @@
             this.ImagesTableTitlePanel.Location = new System.Drawing.Point(1, 1);
             this.ImagesTableTitlePanel.Name = "ImagesTableTitlePanel";
             this.ImagesTableTitlePanel.Padding = new System.Windows.Forms.Padding(5);
-            this.ImagesTableTitlePanel.Size = new System.Drawing.Size(753, 30);
+            this.ImagesTableTitlePanel.Size = new System.Drawing.Size(758, 30);
             this.ImagesTableTitlePanel.TabIndex = 0;
+            // 
+            // ImageTypeTitleLabel
+            // 
+            this.ImageTypeTitleLabel.AutoSize = true;
+            this.ImageTypeTitleLabel.Location = new System.Drawing.Point(208, 7);
+            this.ImageTypeTitleLabel.Name = "ImageTypeTitleLabel";
+            this.ImageTypeTitleLabel.Size = new System.Drawing.Size(26, 13);
+            this.ImageTypeTitleLabel.TabIndex = 7;
+            this.ImageTypeTitleLabel.Text = "Тип";
             // 
             // ImageSizeTitleLabel
             // 
@@ -347,7 +356,7 @@
             // PackageFolderChooseButton
             // 
             this.PackageFolderChooseButton.Image = ((System.Drawing.Image)(resources.GetObject("PackageFolderChooseButton.Image")));
-            this.PackageFolderChooseButton.Location = new System.Drawing.Point(9, 8);
+            this.PackageFolderChooseButton.Location = new System.Drawing.Point(729, 4);
             this.PackageFolderChooseButton.Name = "PackageFolderChooseButton";
             this.PackageFolderChooseButton.Size = new System.Drawing.Size(36, 28);
             this.PackageFolderChooseButton.TabIndex = 5;
@@ -357,7 +366,7 @@
             // PackageFolderLabel
             // 
             this.PackageFolderLabel.AutoSize = true;
-            this.PackageFolderLabel.Location = new System.Drawing.Point(49, 16);
+            this.PackageFolderLabel.Location = new System.Drawing.Point(10, 11);
             this.PackageFolderLabel.Name = "PackageFolderLabel";
             this.PackageFolderLabel.Size = new System.Drawing.Size(84, 13);
             this.PackageFolderLabel.TabIndex = 2;
@@ -377,7 +386,6 @@
             // 
             this.panel4.Controls.Add(this.PackingProtocolTextBox);
             this.panel4.Controls.Add(this.PackPutton);
-            this.panel4.Controls.Add(this.PartitionPropertyGrid);
             this.panel4.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel4.Location = new System.Drawing.Point(781, 3);
             this.panel4.Name = "panel4";
@@ -389,41 +397,24 @@
             this.PackingProtocolTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.PackingProtocolTextBox.Location = new System.Drawing.Point(6, 271);
+            this.PackingProtocolTextBox.Location = new System.Drawing.Point(6, 35);
             this.PackingProtocolTextBox.Multiline = true;
             this.PackingProtocolTextBox.Name = "PackingProtocolTextBox";
             this.PackingProtocolTextBox.ReadOnly = true;
-            this.PackingProtocolTextBox.Size = new System.Drawing.Size(406, 503);
+            this.PackingProtocolTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.PackingProtocolTextBox.Size = new System.Drawing.Size(410, 743);
             this.PackingProtocolTextBox.TabIndex = 4;
             // 
             // PackPutton
             // 
             this.PackPutton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.PackPutton.Location = new System.Drawing.Point(198, 8);
+            this.PackPutton.Location = new System.Drawing.Point(266, 7);
             this.PackPutton.Name = "PackPutton";
-            this.PackPutton.Size = new System.Drawing.Size(214, 23);
+            this.PackPutton.Size = new System.Drawing.Size(150, 23);
             this.PackPutton.TabIndex = 3;
             this.PackPutton.Text = "Упаковать";
             this.PackPutton.UseVisualStyleBackColor = true;
             this.PackPutton.Click += new System.EventHandler(this.PackPutton_Click);
-            // 
-            // PartitionPropertyGrid
-            // 
-            this.PartitionPropertyGrid.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.PartitionPropertyGrid.Location = new System.Drawing.Point(6, 43);
-            this.PartitionPropertyGrid.Name = "PartitionPropertyGrid";
-            this.PartitionPropertyGrid.Size = new System.Drawing.Size(407, 222);
-            this.PartitionPropertyGrid.TabIndex = 1;
-            // 
-            // ImageTypeTitleLabel
-            // 
-            this.ImageTypeTitleLabel.AutoSize = true;
-            this.ImageTypeTitleLabel.Location = new System.Drawing.Point(208, 7);
-            this.ImageTypeTitleLabel.Name = "ImageTypeTitleLabel";
-            this.ImageTypeTitleLabel.Size = new System.Drawing.Size(26, 13);
-            this.ImageTypeTitleLabel.TabIndex = 7;
-            this.ImageTypeTitleLabel.Text = "Тип";
             // 
             // MainWindow
             // 
@@ -482,7 +473,6 @@
         private System.Windows.Forms.Panel panel4;
         private System.Windows.Forms.TextBox PackingProtocolTextBox;
         private System.Windows.Forms.Button PackPutton;
-        private System.Windows.Forms.PropertyGrid PartitionPropertyGrid;
         private System.Windows.Forms.Splitter splitter1;
         private System.Windows.Forms.Splitter splitter2;
         private System.Windows.Forms.Label PartitionTypeTitleLabel;

@@ -20,6 +20,9 @@ namespace MStarGUI
         InformationalBlock LastInformationalBlock = null;
         FilePartLoadCommand LastFilePartLoadCommand = null;
 
+        WriteFileCommand LastWriteFileCommand = null;
+        List<IHeaderScriptElement> WritePrologCommands = new List<IHeaderScriptElement>();
+
         int BootCounter = 0;
         public int PostEnvIndex 
         {
@@ -78,7 +81,7 @@ namespace MStarGUI
 
         public bool parseScriptLine (string line)
         {
-            if (line.Trim().Length == 0 || line.StartsWith( "#" )
+            if (line.Trim().Length == 0 || line.StartsWith( "#" ) || line.StartsWith( "set " )
                 || line.StartsWith( "setenv" ) || line.StartsWith( "saveenv" ) || line.StartsWith( "printenv" ))
             {
                 addInformationalString( line );
@@ -107,6 +110,7 @@ namespace MStarGUI
                             break;
 
                         case "erase.p":
+                        case "erase.part":
                             addEraseCommand( line );
                             break;
 
@@ -147,13 +151,40 @@ namespace MStarGUI
 
         public void addInformationalString (string line)
         {
-            if (LastInformationalBlock == null)
+            if (LastWriteFileCommand != null)
             {
-                LastInformationalBlock = new InformationalBlock();
-                Elements.Add( LastInformationalBlock );
-            }
-            LastInformationalBlock.addString( line );
+                if (LastInformationalBlock == null)
+                    LastInformationalBlock = new InformationalBlock();
 
+                if (line.StartsWith( "setenv" ))
+                {
+                    LastWriteFileCommand.Epilog = LastInformationalBlock;
+                }
+                else if (line.StartsWith( "saveenv" ))
+                {
+                    LastWriteFileCommand.Epilog = LastInformationalBlock;
+                    LastInformationalBlock.addString( line );
+                    LastWriteFileCommand = null;
+                    LastInformationalBlock = new InformationalBlock();
+                    Elements.Add( LastInformationalBlock );
+                    return;
+                }
+                else
+                {
+                    LastWriteFileCommand = null;
+                    LastInformationalBlock = new InformationalBlock();
+                    Elements.Add( LastInformationalBlock );
+                }
+            }
+            else {
+                if (LastInformationalBlock == null)
+                {
+                    LastInformationalBlock = new InformationalBlock();
+                    Elements.Add( LastInformationalBlock );
+                }
+            }
+
+            LastInformationalBlock.addString( line );
             if (line.StartsWith( "setenv" ))
             {
                 string[] setEnvTokens = line.Split( ' ' );
@@ -165,7 +196,8 @@ namespace MStarGUI
         }
         public void addEraseCommand (string line)
         {
-            Elements.Add( new EraseCommand( line.Split( ' ' ) ) );
+            EraseCommand command = new EraseCommand( line.Split( ' ' ) );
+            WritePrologCommands.Add( command );
         }
         public void addPartitionCreateCommand (string name, string size, bool xgi)
         {
@@ -178,6 +210,7 @@ namespace MStarGUI
         public void addFilepartLoadCommand (string line)
         {
             LastFilePartLoadCommand = new FilePartLoadCommand( line.Split( ' ' ) );
+            WritePrologCommands.Add( LastFilePartLoadCommand );
             LastInformationalBlock = null;
         }
         public void addWritePiCommand (string line)
@@ -206,6 +239,10 @@ namespace MStarGUI
         }
         void addWriteFileCommand (WriteFileCommand command)
         {
+            command.Prolog = WritePrologCommands;
+            WritePrologCommands = new List<IHeaderScriptElement>();
+            LastWriteFileCommand = command;
+
             Elements.Add( command );
             LastFilePartLoadCommand = null;
             LastInformationalBlock = null;
@@ -229,9 +266,6 @@ namespace MStarGUI
             Serializer.WriteObject( writer.BaseStream, this );
             writer.WriteLine();
             writer.Flush();
-
-            //foreach (IHeaderScriptElement element in Elements)
-            //    element.saveTo( writer );
         }
 
         public void saveTo (string filename)
@@ -280,18 +314,6 @@ namespace MStarGUI
                 }
                 partition.addChunk( command );
             }
-/*
-            foreach (PartitionCreateCommand command in PartitionsList.PartitionCreateCommands.Values)
-            {
-                Partition partition;
-                if (!partitions.TryGetValue( command.Name, out partition ))
-                {
-                    partition = new Partition( command );
-                    partitions.Add( command.Name, partition );
-                }
-                partition.Size = Convert.ToInt64( command.Size, 16 );
-            }
-*/
             return partitions;
         }
     }

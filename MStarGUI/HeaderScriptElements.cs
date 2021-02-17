@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace MStarGUI
 {
-    interface IHeaderScriptElement
+    public interface IHeaderScriptElement
     {
         void writeToHeader (StreamWriter writer);
     }
 
-    class InformationalBlock : IHeaderScriptElement
+    public class InformationalBlock : IHeaderScriptElement
     {
         readonly List<string> Strings = new List<string>();
 
@@ -107,7 +107,7 @@ namespace MStarGUI
         }
     }
 
-    public class FilePartLoadCommand
+    public class FilePartLoadCommand : IHeaderScriptElement
     {
         public string Address
         {
@@ -159,7 +159,7 @@ namespace MStarGUI
             Size = size;
         }
 
-        public void writeTo (StreamWriter writer)
+        public void writeToHeader (StreamWriter writer)
         {
             writer.WriteLine( $"filepartload {Address} {ImageName} 0x{Offset:x} 0x{Size:x}" );
         }

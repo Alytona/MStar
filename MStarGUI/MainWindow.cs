@@ -71,6 +71,19 @@ namespace MStarGUI
 
             SourceFirmwareFilename = Path.Combine( WorkDirectory, (string)FirmwareChooseComboBox.SelectedItem );
 
+            
+            //using (StreamWriter writer = new StreamWriter( SourceFirmwareFilename + ".header" ))
+            //using (StreamReader reader = new StreamReader( SourceFirmwareFilename ))
+            //{
+            //    while (!reader.EndOfStream)
+            //    {
+            //        string line = reader.ReadLine();
+            //        writer.WriteLine( line );
+            //        if (line.StartsWith( "%" ))
+            //            break;
+            //    }
+            //}
+
             ScriptHolder = new ScriptElementsHolder();
             if (ScriptHolder.loadFrom( SourceFirmwareFilename, UnpackLogger )) 
             {
@@ -216,9 +229,6 @@ namespace MStarGUI
             ImageSizeTitleLabel.Left = ImageNameTitleLabel.Left + (int)(widths[(int)ImagePanel.Columns.Name] + .5) + 10;
             ImageTypeTitleLabel.Left = ImageSizeTitleLabel.Left + (int)(widths[(int)ImagePanel.Columns.Size] + .5) + 10;
 
-            //            PartitionTypeTitleLabel.Width = (int)(nameWidth + .5) + 2;
-            //PartitionChunksTitleLabel.Left = PartitionTypeTitleLabel.Left + (int)(widths[(int)PartitionPanel.Columns.Type] + .5) + 10;
-
             ImagePanels.Clear();
             int index = 1;
             foreach (Partition partition in imagePartitions)
@@ -228,8 +238,6 @@ namespace MStarGUI
                 rowPanel.Width = ImagesTablePanel.ClientSize.Width - 3;
                 ImagesTablePanel.Controls.Add( rowPanel );
                 ImagePanels.Add( partition.Name, rowPanel );
-
-                rowPanel.PartitionPropertyGrid = PartitionPropertyGrid;
             }
         }
 
@@ -248,10 +256,13 @@ namespace MStarGUI
             try
             {
                 ScriptElementsHolder newScriptHolder = new ScriptElementsHolder();
+                FullPackage = true;
 
                 List<string> writtenPartitions = new List<string>();
 
-                string newFirmwareFilename = FirmwareDir + "_new.bin";
+                string newFirmwareFilename = FirmwareDir + ".bin";
+                newFirmwareFilename = Path.Combine( Path.GetDirectoryName( newFirmwareFilename ), "new_" + Path.GetFileName( newFirmwareFilename ) );
+
                 using (FileStream outputStream = new FileStream( newFirmwareFilename, FileMode.Create, FileAccess.Write ))
                 {
                     messageLogger.logMessage( "Добавление заголовка." );
@@ -294,7 +305,6 @@ namespace MStarGUI
                                 else
                                 {
                                     FullPackage = false;
-                                    // partition.copy( inputStream, outputStream, messageLogger );
                                 }
                             }
                             postEnvIndex = newScriptHolder.Elements.Count;
@@ -306,6 +316,7 @@ namespace MStarGUI
                     outputStream.Seek( 0, SeekOrigin.Begin );
                     using (StreamWriter writer = new StreamWriter( outputStream ))
                     {
+                        writer.NewLine = "\x0a";
                         if (FullPackage)
                         {
                             foreach (IHeaderScriptElement element in newScriptHolder.Elements)
