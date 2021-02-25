@@ -14,11 +14,44 @@ namespace MStarGUI
 
     public class InformationalBlock : IHeaderScriptElement
     {
+        public bool hasThirdCrc
+        {
+            get; set;
+        }
         readonly List<string> Strings = new List<string>();
 
         public void addString (string scriptLine)
         {
             Strings.Add( scriptLine );
+        }
+
+        public void setThirdCrc (uint crc)
+        {
+            for (int i = 0; i < Strings.Count; i++) 
+            {
+                if (Strings[i].Contains( "CEnv_UpgradeCRC_" )) 
+                {
+                    string[] setEnvTokens = Strings[i].Split( ' ' );
+                    if (setEnvTokens.Length > 0)
+                        Strings[i] = string.Format( $"setenv {setEnvTokens[1]} 0x{Partition.reverseBytes(crc):X8}" );
+                }
+            }
+        }
+
+        public void setTitle (string title)
+        {
+            int titleEndIndex = 0;
+            foreach (string line in Strings) {
+                if (!line.StartsWith( "#" ))
+                    break;
+                titleEndIndex++;
+            }
+
+            if (titleEndIndex > 0)
+                Strings.RemoveRange( 0, titleEndIndex );
+
+            Strings.Insert( 0, "# " + title );
+            Strings.Insert( 1, "# build time : " + DateTime.Now.ToString( "HH:mm:ss dd-MM-yyyy" ) );
         }
 
         public string getStarter ()
@@ -36,6 +69,7 @@ namespace MStarGUI
             }
         }
     }
+
     class EraseCommand : IHeaderScriptElement
     {
         public readonly string PartitionName;

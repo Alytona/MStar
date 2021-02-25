@@ -18,6 +18,8 @@ namespace MStarGUI
         string SourceFirmwareFilename;
 
         ScriptElementsHolder ScriptHolder;
+        MStarConfiguration ProgramConfiguration;
+        UserPreferences ProgramPreferences;
 
         readonly Dictionary<string, ImagePanel> ImagePanels = new Dictionary<string, ImagePanel>();
 
@@ -33,6 +35,15 @@ namespace MStarGUI
 
             UnpackLogger = new TextBoxLogger( UnpackingProtocolTextBox );
             PackLogger = new TextBoxLogger( PackingProtocolTextBox );
+
+            ProgramConfiguration = new MStarConfiguration( Path.Combine( WorkDirectory, "mstar.config" ) );
+            ProgramConfiguration.load();
+
+            ProgramPreferences = new UserPreferences( Path.Combine( WorkDirectory, "mstar.preferences" ) );
+            if (ProgramPreferences.load()) {
+                if (Directory.Exists( ProgramPreferences.WorkingDirectory ))
+                    WorkDirectory = ProgramPreferences.WorkingDirectory;
+            }
         }
 
         private void FirmwareChooseButton_Click (object sender, EventArgs e)
@@ -255,6 +266,11 @@ namespace MStarGUI
         {
             try
             {
+                if (ScriptHolder == null) {
+                    messageLogger.logMessage( "Нужно выбрать папку сборки." );
+                    return false;
+                }
+
                 ScriptElementsHolder newScriptHolder = new ScriptElementsHolder();
                 FullPackage = true;
 
@@ -311,6 +327,11 @@ namespace MStarGUI
                         }
                     }
 
+                    messageLogger.logMessage( "Расчет контрольной суммы бинарной части прошивки." );
+                    newScriptHolder.setFirmwareBodyCrc( Partition.computeCrc32( outputStream.Name, 16 * 1024, outputStream.Length - 16 * 1024 ) );
+                    if (!string.IsNullOrEmpty( ProgramConfiguration.FirmwareTitle ))
+                        newScriptHolder.setTitle( ProgramConfiguration.FirmwareTitle );
+
                     messageLogger.logMessage( "Запись заголовка." );
 
                     outputStream.Seek( 0, SeekOrigin.Begin );
@@ -345,23 +366,23 @@ namespace MStarGUI
                 messageLogger.logMessage( "Расчет и запись контрольных сумм." );
                 using (FileStream outputStream = new FileStream( newFirmwareFilename, FileMode.Append, FileAccess.Write, FileShare.Read ))
                 {
-                    uint firmwareBodyCrc = Partition.computeCrc32( outputStream.Name, 16 * 1024, outputStream.Length - 16 * 1024 );
+                    //uint firmwareBodyCrc = Partition.computeCrc32( outputStream.Name, 16 * 1024, outputStream.Length - 16 * 1024 );
                     uint firmwareHeaderCrc = Partition.computeCrc32( outputStream.Name, 0, 16 * 1024 );
                     if (ScriptHolder.CrcType == ScriptElementsHolder.CrcTypes.Third)
                     {
-                        outputStream.Write( BitConverter.GetBytes( firmwareBodyCrc ), 0, 4 );
+                        outputStream.Write( BitConverter.GetBytes( newScriptHolder.FirmwareBodyCrc ), 0, 4 );
                     }
                     outputStream.Write( new byte[] { 49, 50, 51, 52, 53, 54, 55, 56 }, 0, 8 );
                     outputStream.Write( BitConverter.GetBytes( firmwareHeaderCrc ), 0, 4 );
                     if (ScriptHolder.CrcType == ScriptElementsHolder.CrcTypes.First)
                     {
-                        outputStream.Write( BitConverter.GetBytes( firmwareBodyCrc ), 0, 4 );
+                        outputStream.Write( BitConverter.GetBytes( newScriptHolder.FirmwareBodyCrc ), 0, 4 );
                     }
                     outputStream.Flush();
 
                     if (ScriptHolder.CrcType > ScriptElementsHolder.CrcTypes.First)
                     {
-                        uint firmwareCrc = Partition.computeCrc32( outputStream, 0, outputStream.Length );
+                        uint firmwareCrc = Partition.computeCrc32( outputStream.Name, 0, outputStream.Length );
                         outputStream.Write( BitConverter.GetBytes( firmwareCrc ), 0, 4 );
                     }
 
@@ -413,6 +434,22 @@ namespace MStarGUI
                 if (control is ImagePanel imagePanel)
                     imagePanel.Checked = SelectAllImagesCheckBox.Checked;
             }
+        }
+
+        private void TunesButton_Click (object sender, EventArgs e)
+        {
+            var tunesForm = new TunesForm();
+            tunesForm.useConfigFrom( ProgramConfiguration );
+            if (tunesForm.ShowDialog( this ) == DialogResult.OK) {
+                tunesForm.saveConfigTo( ProgramConfiguration );
+                ProgramConfiguration.save();
+            }
+        }
+
+        private void MainWindow_FormClosing (object sender, FormClosingEventArgs e)
+        {
+            ProgramPreferences.WorkingDirectory = WorkDirectory;
+            ProgramPreferences.save();
         }
     }
 }

@@ -79,6 +79,45 @@ namespace MStarGUI
             }
         }
 
+        public uint FirmwareBodyCrc
+        {
+            get; private set;
+        }
+        public void setFirmwareBodyCrc(uint crc)
+        {
+            FirmwareBodyCrc = crc;
+            //if (CrcType == CrcTypes.Third)
+            {
+                InformationalBlock thirdCrcBlock = null;
+                for (int i = 0; i < Elements.Count && thirdCrcBlock == null; i++ )
+                {
+                    if (Elements[i] is WriteFileCommand writeFileCommand && writeFileCommand.Epilog != null && writeFileCommand.Epilog.hasThirdCrc)
+                        thirdCrcBlock = writeFileCommand.Epilog;
+                    if (Elements[i] is InformationalBlock informationalBlock && informationalBlock.hasThirdCrc)
+                        thirdCrcBlock = informationalBlock;
+                }
+                if (thirdCrcBlock != null) 
+                {
+                    CrcType = CrcTypes.Third;
+                    thirdCrcBlock.setThirdCrc( crc );
+                }
+            }
+        }
+
+        public void setTitle (string title)
+        {
+            InformationalBlock info;
+            if (!(Elements[0] is InformationalBlock))
+            {
+                info = new InformationalBlock();
+                Elements.Insert( 0, info );
+            }
+            else {
+                info = Elements[0] as InformationalBlock;
+            }
+            info.setTitle( title );
+        }
+
         public bool parseScriptLine (string line)
         {
             if (line.Trim().Length == 0 || line.StartsWith( "#" ) || line.StartsWith( "set " )
@@ -190,6 +229,7 @@ namespace MStarGUI
                 string[] setEnvTokens = line.Split( ' ' );
                 if (setEnvTokens.Length > 1 && (setEnvTokens[1] == "CEnv_UpgradeCRC_Tmp" || setEnvTokens[1] == "CEnv_UpgradeCRC_Val"))
                 {
+                    LastInformationalBlock.hasThirdCrc = true;
                     CrcType = CrcTypes.Third;
                 }
             }
