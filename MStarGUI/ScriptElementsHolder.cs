@@ -300,20 +300,45 @@ namespace MStarGUI
             return result;
         }
 
-        static DataContractJsonSerializer Serializer = new DataContractJsonSerializer( typeof( ScriptElementsHolder ) );
-        public void saveTo (StreamWriter writer)
-        {
-            Serializer.WriteObject( writer.BaseStream, this );
-            writer.WriteLine();
-            writer.Flush();
-        }
-
         public void saveTo (string filename)
         {
-            using (StreamWriter writer = new StreamWriter( filename, false, System.Text.Encoding.GetEncoding( 1251 ) ))
+            using (StreamWriter writer = new StreamWriter( filename, false, Encoding.GetEncoding( 1251 ) ))
+                writeTo( writer );
+        }
+        public void writeTo (FileStream outputStream)
+        {
+            using (StreamWriter writer = new StreamWriter( outputStream ))
+                writeTo( writer );
+        }
+        public void writeTo (StreamWriter writer)
+        {
+            writer.NewLine = "\x0a";
+            foreach (IHeaderScriptElement element in Elements)
+                element.writeToHeader( writer );
+        }
+        public void writeSelectedPartitionsTo (FileStream outputStream)
+        {
+            int postEnvIndex = -1;
+            for (int i = 0; i < Elements.Count; i++)
             {
-                foreach (IHeaderScriptElement element in Elements)
-                    element.writeToHeader( writer );
+                if (Elements[i] is WriteFileCommand)
+                    postEnvIndex = i + 1;
+            }
+
+            bool partitionsStart = false;
+            using (StreamWriter writer = new StreamWriter( outputStream ))
+            {
+                writer.NewLine = "\x0a";
+                for (int i = 0; i < Elements.Count; i++)
+                {
+                    if (Elements[i] is PartionsListSection)
+                        partitionsStart = true;
+                    else
+                    {
+                        if (!partitionsStart || i >= postEnvIndex || Elements[i] is EraseCommand || Elements[i] is WriteFileCommand)
+                            Elements[i].writeToHeader( writer );
+                    }
+                }
             }
         }
 
@@ -326,7 +351,7 @@ namespace MStarGUI
                     string line = reader.ReadLine();
                     try
                     {
-                        if (!parseScriptLine( line ))
+                        if (!parseScriptLine( line.Trim() ))
                             break;
                     }
                     catch (Exception error)

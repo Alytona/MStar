@@ -16,9 +16,11 @@ namespace MStarGUI
             LoggerTextBox = loggerTextBox;
         }
 
-        public void logMessage (string message)
+        public void logMessage (string message, bool crlf = true)
         {
-            LoggerTextBox.AppendText( message + "\r\n" );
+            if (LoggerTextBox.Lines.Length != 0 && crlf)
+                LoggerTextBox.AppendText( "\r\n" );
+            LoggerTextBox.AppendText( message );
         }
     }
 }

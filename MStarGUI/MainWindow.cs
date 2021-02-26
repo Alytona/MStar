@@ -21,12 +21,14 @@ namespace MStarGUI
         MStarConfiguration ProgramConfiguration;
         UserPreferences ProgramPreferences;
 
-        readonly Dictionary<string, ImagePanel> ImagePanels = new Dictionary<string, ImagePanel>();
+        readonly List<ImagePanel> ImagePanels = new List<ImagePanel>();
 
         readonly IMessageLogger UnpackLogger;
         readonly IMessageLogger PackLogger;
 
-        bool FullPackage;
+        bool PackingProcessing;
+        bool UnpackingProcessing;
+
 
         public MainWindow ()
         {
@@ -56,6 +58,8 @@ namespace MStarGUI
                 WorkDirectory = Path.GetDirectoryName( ofd.FileName );
                 refreshFirmwareList( ofd.FileName );
             }
+
+            UnpackButton.Enabled = true;
         }
 
         private void refreshFirmwareList (string selectedFilename)
@@ -81,19 +85,6 @@ namespace MStarGUI
                 return;
 
             SourceFirmwareFilename = Path.Combine( WorkDirectory, (string)FirmwareChooseComboBox.SelectedItem );
-
-            
-            //using (StreamWriter writer = new StreamWriter( SourceFirmwareFilename + ".header" ))
-            //using (StreamReader reader = new StreamReader( SourceFirmwareFilename ))
-            //{
-            //    while (!reader.EndOfStream)
-            //    {
-            //        string line = reader.ReadLine();
-            //        writer.WriteLine( line );
-            //        if (line.StartsWith( "%" ))
-            //            break;
-            //    }
-            //}
 
             ScriptHolder = new ScriptElementsHolder();
             if (ScriptHolder.loadFrom( SourceFirmwareFilename, UnpackLogger )) 
@@ -168,40 +159,97 @@ namespace MStarGUI
 
                 if (partitionsToUnpack.Count > 0)
                 {
+                    UnpackButton.Enabled = false;
+                    PackButton.Enabled = false;
+                    PackageFolderChooseButton.Enabled = false;
+
+                    UnpackingProcessing = true;
+
                     FirmwareDir = Path.Combine( WorkDirectory, Path.GetFileNameWithoutExtension( SourceFirmwareFilename ) );
                     if (!Directory.Exists( FirmwareDir ))
                         Directory.CreateDirectory( FirmwareDir );
 
-                    if (Directory.GetFiles( FirmwareDir, ".Header" ).Length == 0) 
+                    if (Directory.GetFiles( FirmwareDir, ".Header" ).Length == 0)
                         ScriptHolder.saveTo( Path.Combine( FirmwareDir, ".Header" ) );
 
                     bool successfully = true;
-                    try
+                    StringListLogger taskLogger = new StringListLogger();
+
+                    Task unpacking = new Task( delegate ()
                     {
-                        using (FileStream fileStream = new FileStream( SourceFirmwareFilename, FileMode.Open, FileAccess.Read ))
+                        try
                         {
-                            foreach (Partition partition in partitionsToUnpack)
+                            using (FileStream fileStream = new FileStream( SourceFirmwareFilename, FileMode.Open, FileAccess.Read ))
                             {
-                                if (!partition.unpack( FirmwareDir, fileStream, UnpackLogger ))
-                                    successfully = false;
+                                foreach (Partition partition in partitionsToUnpack)
+                                {
+                                    if (!partition.unpack( FirmwareDir, fileStream, taskLogger ))
+                                        successfully = false;
+                                }
                             }
                         }
-                    }
-                    catch (Exception error)
+                        catch (Exception error)
+                        {
+                            UnpackLogger.logMessage( error.ToString() );
+                            successfully = false;
+                        }
+                    } );
+
+                    unpacking.Start();
+
+                    TextBoxPointsProgressIndicator progressIndicator = new TextBoxPointsProgressIndicator( UnpackingProtocolTextBox );
+                    while (!unpacking.Wait( 100 ))
                     {
-                        UnpackLogger.logMessage( error.ToString() );
-                        successfully = false;
+                        Application.DoEvents();
+                        if (taskLogger.hasNewMessages())
+                        {
+                            progressIndicator.hide();
+                            taskLogger.exportMessages( UnpackLogger );
+                        }
+                        else
+                        {
+                            UnpackLogger.logMessage( progressIndicator.getNextState(), false );
+                        }
                     }
+                    progressIndicator.hide();
+                    taskLogger.exportMessages( UnpackLogger );
+
+                    //try
+                    //{
+                    //    using (FileStream fileStream = new FileStream( SourceFirmwareFilename, FileMode.Open, FileAccess.Read ))
+                    //    {
+                    //        foreach (Partition partition in partitionsToUnpack)
+                    //        {
+                    //            if (!partition.unpack( FirmwareDir, fileStream, UnpackLogger ))
+                    //                successfully = false;
+                    //        }
+                    //    }
+                    //}
+                    //catch (Exception error)
+                    //{
+                    //    UnpackLogger.logMessage( error.ToString() );
+                    //    successfully = false;
+                    //}
+
                     if (successfully)
                         UnpackLogger.logMessage( "Успешно распаковалось." );
 
                     PackageFolderLabel.Text = "Папка сборки : " + FirmwareDir;
                     fillImagesPanel( ScriptHolder.getPartitions() );
+
+                    PackButton.Enabled = true;
                 }
             }
             catch (Exception error)
             {
                 MessageBox.Show( this, error.ToString(), "Разбор прошивки завершился с ошибкой" );
+            }
+            finally 
+            {
+                UnpackingProcessing = false;
+                UnpackButton.Enabled = true;
+                PackButton.Enabled = true;
+                PackageFolderChooseButton.Enabled = true;
             }
         }
 
@@ -215,7 +263,7 @@ namespace MStarGUI
                 if (File.Exists( Path.Combine( FirmwareDir, partition.Name + ".img" ) ))
                     imagePartitions.Add( partition );
             }
-            FullPackage = partitions.Count == imagePartitions.Count;
+            // FullPackage = partitions.Count == imagePartitions.Count;
 
             ImagesTablePanel.Controls.Clear();
             ImagesTablePanel.Controls.Add( ImagesTableTitlePanel );
@@ -248,17 +296,25 @@ namespace MStarGUI
                 rowPanel.Top = (index++) * (rowPanel.Height - 1) + 1;
                 rowPanel.Width = ImagesTablePanel.ClientSize.Width - 3;
                 ImagesTablePanel.Controls.Add( rowPanel );
-                ImagePanels.Add( partition.Name, rowPanel );
+                ImagePanels.Add( rowPanel );
             }
         }
 
         private void PackPutton_Click (object sender, EventArgs e)
         {
-            PackingProtocolTextBox.Clear();
-            Application.DoEvents();
-            if (packFirmware( PackLogger ))
+            try
             {
-                PackLogger.logMessage( "Успешно упаковано." );
+                PackButton.Enabled = false;
+
+                PackingProtocolTextBox.Clear();
+                Application.DoEvents();
+                if (packFirmware( PackLogger ))
+                {
+                    PackLogger.logMessage( "Успешно упаковано." );
+                }
+            }
+            finally {
+                PackButton.Enabled = true;
             }
         }
 
@@ -266,139 +322,61 @@ namespace MStarGUI
         {
             try
             {
-                if (ScriptHolder == null) {
+                if (ScriptHolder == null)
+                {
                     messageLogger.logMessage( "Нужно выбрать папку сборки." );
                     return false;
                 }
 
-                ScriptElementsHolder newScriptHolder = new ScriptElementsHolder();
-                FullPackage = true;
-
-                List<string> writtenPartitions = new List<string>();
-
-                string newFirmwareFilename = FirmwareDir + ".bin";
-                newFirmwareFilename = Path.Combine( Path.GetDirectoryName( newFirmwareFilename ), "new_" + Path.GetFileName( newFirmwareFilename ) );
-
-                using (FileStream outputStream = new FileStream( newFirmwareFilename, FileMode.Create, FileAccess.Write ))
+                Dictionary<string, Partition> partitionsToPack = new Dictionary<string, Partition>();
+                foreach (ImagePanel panel in ImagePanels)
                 {
-                    messageLogger.logMessage( "Добавление заголовка." );
-
-                    for (int i = 0; i < 16 * 1024; i++)
-                        outputStream.WriteByte( 0xFF );
-
-                    IHeaderScriptElement eraseCommandElement = null;
-                    int postEnvIndex = -1;
-
-                    foreach (IHeaderScriptElement element in ScriptHolder.Elements)
-                    {
-                        if (element is InformationalBlock || element is PartionsListSection)
-                        {
-                            newScriptHolder.Elements.Add( element );
-                        }
-                        else if (element is EraseCommand)
-                        {
-                            eraseCommandElement = element;
-                        }
-                        else if (element is WriteFileCommand command)
-                        {
-                            if (writtenPartitions.Contains( command.PartitionName ))
-                                continue;
-                            writtenPartitions.Add( command.PartitionName );
-
-                            if (ImagePanels.TryGetValue( command.PartitionName, out ImagePanel panel ))
-                            {
-                                string filename = Path.Combine( FirmwareDir, command.PartitionName + ".img" );
-                                if (File.Exists( filename ) && panel.Checked)
-                                {
-                                    if (eraseCommandElement != null)
-                                    {
-                                        newScriptHolder.Elements.Add( eraseCommandElement );
-                                        eraseCommandElement = null;
-                                    }
-                                    var newChunks = panel.Partition.pack( FirmwareDir, outputStream, messageLogger );
-                                    newScriptHolder.Elements.AddRange( newChunks );
-                                }
-                                else
-                                {
-                                    FullPackage = false;
-                                }
-                            }
-                            postEnvIndex = newScriptHolder.Elements.Count;
-                        }
-                    }
-
-                    messageLogger.logMessage( "Расчет контрольной суммы бинарной части прошивки." );
-                    newScriptHolder.setFirmwareBodyCrc( Partition.computeCrc32( outputStream.Name, 16 * 1024, outputStream.Length - 16 * 1024 ) );
-                    if (!string.IsNullOrEmpty( ProgramConfiguration.FirmwareTitle ))
-                        newScriptHolder.setTitle( ProgramConfiguration.FirmwareTitle );
-
-                    messageLogger.logMessage( "Запись заголовка." );
-
-                    outputStream.Seek( 0, SeekOrigin.Begin );
-                    using (StreamWriter writer = new StreamWriter( outputStream ))
-                    {
-                        writer.NewLine = "\x0a";
-                        if (FullPackage)
-                        {
-                            foreach (IHeaderScriptElement element in newScriptHolder.Elements)
-                                element.writeToHeader( writer );
-                        }
-                        else
-                        {
-                            int index = 0;
-                            bool partitionsStart = false;
-
-                            foreach (IHeaderScriptElement element in newScriptHolder.Elements)
-                            {
-                                if (element is PartionsListSection)
-                                    partitionsStart = true;
-                                else
-                                {
-                                    if (!partitionsStart || index >= postEnvIndex || element is EraseCommand || element is WriteFileCommand)
-                                        element.writeToHeader( writer );
-                                }
-                                index++;
-                            }
-                        }
-                    }
+                    if (panel.Checked)
+                        partitionsToPack.Add( panel.Partition.Name, panel.Partition );
                 }
 
-                messageLogger.logMessage( "Расчет и запись контрольных сумм." );
-                using (FileStream outputStream = new FileStream( newFirmwareFilename, FileMode.Append, FileAccess.Write, FileShare.Read ))
+                StringListLogger taskLogger = new StringListLogger();
+
+                var firmwareBuilder = new FirmwareBuilder( FirmwareDir, ProgramConfiguration.FirmwareTitle );
+                Task packing = new Task( delegate ()
                 {
-                    //uint firmwareBodyCrc = Partition.computeCrc32( outputStream.Name, 16 * 1024, outputStream.Length - 16 * 1024 );
-                    uint firmwareHeaderCrc = Partition.computeCrc32( outputStream.Name, 0, 16 * 1024 );
-                    if (ScriptHolder.CrcType == ScriptElementsHolder.CrcTypes.Third)
-                    {
-                        outputStream.Write( BitConverter.GetBytes( newScriptHolder.FirmwareBodyCrc ), 0, 4 );
-                    }
-                    outputStream.Write( new byte[] { 49, 50, 51, 52, 53, 54, 55, 56 }, 0, 8 );
-                    outputStream.Write( BitConverter.GetBytes( firmwareHeaderCrc ), 0, 4 );
-                    if (ScriptHolder.CrcType == ScriptElementsHolder.CrcTypes.First)
-                    {
-                        outputStream.Write( BitConverter.GetBytes( newScriptHolder.FirmwareBodyCrc ), 0, 4 );
-                    }
-                    outputStream.Flush();
+                    firmwareBuilder.pack( ScriptHolder, partitionsToPack, taskLogger );
+                } );
 
-                    if (ScriptHolder.CrcType > ScriptElementsHolder.CrcTypes.First)
-                    {
-                        uint firmwareCrc = Partition.computeCrc32( outputStream.Name, 0, outputStream.Length );
-                        outputStream.Write( BitConverter.GetBytes( firmwareCrc ), 0, 4 );
-                    }
+                PackageFolderChooseButton.Enabled = false;
+                UnpackButton.Enabled = false;
 
-                    string starter = (newScriptHolder.Elements[0] is InformationalBlock firstComment) ? firstComment.getStarter() : null;
-                    if (starter == null)
-                        starter = "# MSTAR FIRMWARE";
-                    outputStream.Write( Encoding.ASCII.GetBytes( starter ), 0, 16 );
+                PackingProcessing = true;
+                packing.Start();
+
+                TextBoxPointsProgressIndicator progressIndicator = new TextBoxPointsProgressIndicator( PackingProtocolTextBox );
+                while (!packing.Wait( 100 ))
+                {
+                    Application.DoEvents();
+
+                    if (taskLogger.hasNewMessages()) {
+                        progressIndicator.hide();
+                        taskLogger.exportMessages( messageLogger );
+                    } else {
+                        messageLogger.logMessage( progressIndicator.getNextState(), false );
+                    }
                 }
+                progressIndicator.hide();
+                taskLogger.exportMessages( messageLogger );
+
+                return true;
             }
             catch (Exception error)
             {
                 messageLogger.logMessage( error.ToString() );
                 return false;
             }
-            return true;
-        }
+            finally {
+                PackageFolderChooseButton.Enabled = true;
+                PackingProcessing = false;
+                UnpackButton.Enabled = FirmwareChooseComboBox.Items.Count > 0;
+            }
+        } 
 
         private void PackageFolderChooseButton_Click (object sender, EventArgs e)
         {
@@ -414,7 +392,6 @@ namespace MStarGUI
                 }
                 else 
                 {
-
                     var newScriptHolder = new ScriptElementsHolder();
                     if (newScriptHolder.loadFrom( ofd.FileName, PackLogger )) 
                     {
@@ -423,6 +400,8 @@ namespace MStarGUI
                         PackageFolderLabel.Text = "Папка сборки : " + FirmwareDir;
                         fillImagesPanel( ScriptHolder.getPartitions() );
                     }
+                    PackButton.Enabled = true;
+                    PackingProtocolTextBox.Clear();
                 }
             }
         }
@@ -448,8 +427,131 @@ namespace MStarGUI
 
         private void MainWindow_FormClosing (object sender, FormClosingEventArgs e)
         {
-            ProgramPreferences.WorkingDirectory = WorkDirectory;
-            ProgramPreferences.save();
+            if (PackingProcessing || UnpackingProcessing)
+                e.Cancel = true;
+            else {
+                ProgramPreferences.WorkingDirectory = WorkDirectory;
+                ProgramPreferences.MainWindowSize = Size;
+                ProgramPreferences.MainWindowPosition = Location;
+                ProgramPreferences.UnpackSplitterPosition = UnpackRightPanel.Width;
+                ProgramPreferences.PackSplitterPosition = PackRightPanel.Width;
+                ProgramPreferences.save();
+            }
+        }
+
+        private void MainWindow_Shown (object sender, EventArgs e)
+        {
+            if (ProgramPreferences.Loaded) 
+            {
+                if (ProgramPreferences.MainWindowSize.Width >= 100 && ProgramPreferences.MainWindowSize.Height >= 100 && 
+                    ProgramPreferences.MainWindowPosition.X > -10000 && ProgramPreferences.MainWindowPosition.Y > -10000)
+                {
+                    this.SetBounds( ProgramPreferences.MainWindowPosition.X, ProgramPreferences.MainWindowPosition.Y, ProgramPreferences.MainWindowSize.Width, ProgramPreferences.MainWindowSize.Height );
+                }
+
+                if (ProgramPreferences.UnpackSplitterPosition >= 50)
+                    UnpackRightPanel.Width = ProgramPreferences.UnpackSplitterPosition;
+
+                if (ProgramPreferences.PackSplitterPosition >= 50)
+                    PackRightPanel.Width = ProgramPreferences.PackSplitterPosition;
+            }
+        }
+    }
+
+    class StringListLogger : IMessageLogger
+    {
+        readonly object MessagesLock = new object();
+        readonly List<string> Messages = new List<string>();
+
+        int StartIndex;
+
+        public void logMessage (string message, bool crlf = true)
+        {
+            lock (MessagesLock) {
+                Messages.Add( message ); // + (crlf ? "\r\n" : "") );
+            }
+        }
+        public bool hasNewMessages ()
+        {
+            lock (MessagesLock)
+            {
+                return StartIndex < Messages.Count;
+            }
+        }
+        public bool exportMessages ( IMessageLogger logger )
+        {
+            lock (MessagesLock)
+            {
+                bool result = StartIndex < Messages.Count;
+                while (StartIndex < Messages.Count)
+                    logger.logMessage( Messages[StartIndex++] );
+                return result;
+            }
+        }
+    }
+
+    class TextBoxProgressIndicator
+    {
+        const string IndicatorStates = "\\|/-";
+
+        readonly TextBox TargetTextBox;
+
+        int State = 0;
+        bool Visible;
+
+        public TextBoxProgressIndicator (TextBox textBox)
+        {
+            TargetTextBox = textBox;
+        }
+
+        public string getNextState ()
+        {
+            Visible = true;
+            char state = IndicatorStates[State++];
+            if (State >= IndicatorStates.Length)
+                State = 0;
+            return $" {state}";
+        }
+        public void hide ()
+        {
+            if (Visible)
+            {
+                TargetTextBox.Text = TargetTextBox.Text.Remove( TargetTextBox.Text.Length - 2, 2 );
+                Visible = false;
+            }
+        }
+    }
+
+    class TextBoxPointsProgressIndicator
+    {
+        readonly TextBox TargetTextBox;
+
+        int State = 0;
+        bool Visible;
+
+        public TextBoxPointsProgressIndicator (TextBox textBox)
+        {
+            TargetTextBox = textBox;
+        }
+
+        public string getNextState ()
+        {
+            if (State >= 10) {
+                hide();
+            }
+            Visible = true;
+            State++;
+            return State == 1? " >" : ">";
+        }
+        public void hide ()
+        {
+            if (Visible)
+            {
+                if (State > 0)
+                    TargetTextBox.Text = TargetTextBox.Text.Remove( TargetTextBox.Text.Length - (State + 1), (State + 1) );
+                State = 0;
+                Visible = false;
+            }
         }
     }
 }

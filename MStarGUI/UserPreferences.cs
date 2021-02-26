@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.IO;
+using System.Drawing;
 
 namespace MStarGUI
 {
@@ -16,6 +17,35 @@ namespace MStarGUI
         public string WorkingDirectory
         {
             get; set;
+        }
+
+        [DataMember]
+        public Size MainWindowSize
+        {
+            get; set;
+        } = new Size( -1, -1 );
+
+        [DataMember]
+        public Point MainWindowPosition
+        {
+            get; set;
+        } = new Point( -10000, -10000 );
+
+        [DataMember]
+        public int UnpackSplitterPosition
+        {
+            get; set;
+        } = -1;
+
+        [DataMember]
+        public int PackSplitterPosition
+        {
+            get; set;
+        } = -1;
+
+        public bool Loaded
+        {
+            get; private set;
         }
 
         readonly string Filename;
@@ -40,8 +70,13 @@ namespace MStarGUI
                             return false;
 
                         WorkingDirectory = loadedConfiguration.WorkingDirectory;
+                        MainWindowSize = loadedConfiguration.MainWindowSize;
+                        MainWindowPosition = loadedConfiguration.MainWindowPosition;
+                        UnpackSplitterPosition = loadedConfiguration.UnpackSplitterPosition;
+                        PackSplitterPosition = loadedConfiguration.PackSplitterPosition;
                     }
                 }
+                Loaded = true;
                 return true;
             }
             catch (Exception error)

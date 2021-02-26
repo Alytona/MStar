@@ -11,7 +11,7 @@ namespace MStarGUI
 {
     public interface IMessageLogger
     {
-        void logMessage (string message);
+        void logMessage (string message, bool crlf = true);
     }
 
     public enum PackingType
